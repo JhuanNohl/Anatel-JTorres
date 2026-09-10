@@ -10,8 +10,9 @@
   <a class="btn btn-primario direita" href="{{ url_for('processos.novo') }}">＋ Novo processo</a>
 </div>
 
+{% set nomes_principais = ['Iniciado', 'Em andamento', 'Finalizado', 'Cancelado'] %}
 <div class="grade g4 mb16">
-  {% for s, quantos in contagens %}
+  {% for s, quantos in contagens if s.nome in nomes_principais %}
   <a class="indicador indicador-status" href="{{ url_for('processos.lista', status=s.nome) }}">
     <div class="rotulo"><span class="ponto" style="background:{{ s.hex }}"></span>{{ s.nome }}</div>
     <div class="valor">{{ quantos }}</div>
@@ -20,122 +21,128 @@
   {% endfor %}
 </div>
 
-<div class="grade g2">
-  <div>
-    <div class="cartao">
-      <div class="cartao-titulo">
-        <h2>Pendências dos processos abertos</h2>
-        <span class="badge {{ 'warn' if pendencias else 'ok' }}">{{ pendencias|length }}</span>
-      </div>
-      {% if pendencias %}
-      <div class="rolagem">
-      <table class="tabela">
-        <thead><tr><th>Processo</th><th>Modelo</th><th>Falta</th></tr></thead>
-        <tbody>
-        {% for item in pendencias %}
-          <tr>
-            <td class="nowrap"><a href="{{ url_for('processos.detalhe', pid=item.processo.id) }}">{{ item.processo.numero }}</a></td>
-            <td>{{ item.processo.produto.modelo }}</td>
-            <td>
-              {% if item.fotos %}<span class="badge warn">{{ item.fotos }} vista(s) de foto</span>{% endif %}
-              {% for tipo in item.docs %}
-                <span class="badge erro">{{ TIPOS_DOCUMENTO[tipo][0] }}</span>
-              {% endfor %}
-            </td>
-          </tr>
-        {% endfor %}
-        </tbody>
-      </table>
-      </div>
-      {% else %}
-      <div class="vazio"><span class="ico">✓</span>Nenhuma pendência nos processos abertos.</div>
-      {% endif %}
-    </div>
+<div class="grade g3 mb16">
+  {% for s, quantos in contagens if s.nome not in nomes_principais %}
+  <a class="indicador indicador-status" href="{{ url_for('processos.lista', status=s.nome) }}">
+    <div class="rotulo"><span class="ponto" style="background:{{ s.hex }}"></span>{{ s.nome }}</div>
+    <div class="valor">{{ quantos }}</div>
+    <div class="legenda">processo{{ 's' if quantos != 1 else '' }}</div>
+  </a>
+  {% endfor %}
+</div>
 
-    <div class="cartao">
-      <div class="cartao-titulo">
-        <h2>Movimentação recente</h2>
-        <a class="pequeno" href="{{ url_for('processos.lista') }}">ver todos</a>
-      </div>
-      {% if recentes %}
-      <div class="rolagem">
-      <table class="tabela">
-        <thead><tr><th>Processo</th><th>Modelo</th><th>OCD</th><th>Status</th><th class="num">Atualizado</th></tr></thead>
-        <tbody>
-        {% for p in recentes %}
-          <tr>
-            <td class="nowrap"><a href="{{ url_for('processos.detalhe', pid=p.id) }}">{{ p.numero }}</a></td>
-            <td>{{ p.produto.modelo }}</td>
-            <td>{{ p.ocd.nome if p.ocd else '-' }}</td>
-            <td><span class="badge" style="{{ STATUS_ESTILOS.get(p.status, '') }}">{{ p.status }}</span></td>
-            <td class="num pequeno fraco">{{ p.atualizado_em|datahora }}</td>
-          </tr>
-        {% endfor %}
-        </tbody>
-      </table>
-      </div>
-      {% else %}
-      <div class="vazio"><span class="ico">▦</span>Nenhum processo ainda.
-        <br><a href="{{ url_for('processos.novo') }}">Começar o primeiro</a></div>
-      {% endif %}
-    </div>
+<div class="cartao">
+  <div class="cartao-titulo">
+    <h2>Pendências dos processos abertos</h2>
+    <span class="badge {{ 'warn' if pendencias else 'ok' }}">{{ pendencias|length }}</span>
   </div>
+  {% if pendencias %}
+  <div class="rolagem">
+  <table class="tabela">
+    <thead><tr><th>Processo</th><th>Modelo</th><th>Falta</th></tr></thead>
+    <tbody>
+    {% for item in pendencias %}
+      <tr>
+        <td class="nowrap"><a href="{{ url_for('processos.detalhe', pid=item.processo.id) }}">{{ item.processo.numero }}</a></td>
+        <td>{{ item.processo.produto.modelo }}</td>
+        <td>
+          <div class="lista-chips">
+          {% if item.fotos %}<span class="badge warn">{{ item.fotos }} vista(s) de foto</span>{% endif %}
+          {% for tipo in item.docs %}
+            <span class="badge erro">{{ TIPOS_DOCUMENTO[tipo][0] }}</span>
+          {% endfor %}
+          </div>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% else %}
+  <div class="vazio"><span class="ico">✓</span>Nenhuma pendência nos processos abertos.</div>
+  {% endif %}
+</div>
 
-  <div>
-    <div class="cartao">
-      <div class="cartao-titulo">
-        <h2>Homologações a vencer</h2>
-        <a class="pequeno" href="{{ url_for('homologacoes.lista') }}">base completa ({{ total_homologacoes }})</a>
-      </div>
-      {% if vencendo %}
-      <div class="rolagem">
-      <table class="tabela">
-        <thead><tr><th>Modelo(s)</th><th>Homologação</th><th class="num">Validade</th><th class="num">Situação</th><th></th></tr></thead>
-        <tbody>
-        {% for h in vencendo %}
-          {% set dias = h.dias_para_vencer %}
-          <tr>
-            <td><a href="{{ url_for('homologacoes.detalhe', hid=h.id) }}">{{ h.lista_modelos or '-' }}</a></td>
-            <td class="num pequeno">{{ h.numero }}</td>
-            <td class="num">{{ h.validade|data }}</td>
-            <td class="num {{ 'alerta-critico' if dias < 0 or dias <= 30 else ('alerta-atencao' if dias <= 90 else 'fraco') }}">
-              {%- if dias < 0 %}Vencida há {{ -dias }} dia{{ 's' if -dias != 1 }}
-              {%- else %}Vence em {{ dias }} dia{{ 's' if dias != 1 }}{% endif -%}
-            </td>
-            <td class="acoes">
-              {% if h.aviso_enviado_em %}
-                <span class="badge ok" title="Aviso registrado em {{ h.aviso_enviado_em|datahora }}">avisado</span>
-              {% else %}
-                <form method="post" action="{{ url_for('homologacoes.aviso', hid=h.id) }}" style="display:inline">
-                  <button class="btn btn-mini">marcar aviso</button>
-                </form>
-              {% endif %}
-            </td>
-          </tr>
-        {% endfor %}
-        </tbody>
-      </table>
-      </div>
-      {% else %}
-      <div class="vazio"><span class="ico">✓</span>Nada vencendo nos próximos 180 dias.</div>
-      {% endif %}
-    </div>
+<div class="cartao">
+  <div class="cartao-titulo">
+    <h2>Homologações a vencer</h2>
+    <a class="pequeno" href="{{ url_for('homologacoes.lista') }}">base completa ({{ total_homologacoes }})</a>
+  </div>
+  {% if vencendo %}
+  <div class="rolagem">
+  <table class="tabela">
+    <thead><tr><th>Modelo(s)</th><th>Homologação</th><th class="num">Validade</th><th class="num">Situação</th><th></th></tr></thead>
+    <tbody>
+    {% for h in vencendo %}
+      {% set dias = h.dias_para_vencer %}
+      <tr>
+        <td><a href="{{ url_for('homologacoes.detalhe', hid=h.id) }}">{{ h.lista_modelos or '-' }}</a></td>
+        <td class="num pequeno">{{ h.numero }}</td>
+        <td class="num">{{ h.validade|data }}</td>
+        <td class="num {{ 'alerta-critico' if dias < 0 or dias <= 30 else ('alerta-atencao' if dias <= 90 else 'fraco') }}">
+          {%- if dias < 0 %}Vencida há {{ -dias }} dia{{ 's' if -dias != 1 }}
+          {%- else %}Vence em {{ dias }} dia{{ 's' if dias != 1 }}{% endif -%}
+        </td>
+        <td class="acoes">
+          {% if h.aviso_enviado_em %}
+            <span class="badge ok" title="Aviso registrado em {{ h.aviso_enviado_em|datahora }}">avisado</span>
+          {% else %}
+            <form method="post" action="{{ url_for('homologacoes.aviso', hid=h.id) }}" style="display:inline">
+              <button class="btn btn-mini">marcar aviso</button>
+            </form>
+          {% endif %}
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% else %}
+  <div class="vazio"><span class="ico">✓</span>Nada vencendo nos próximos 180 dias.</div>
+  {% endif %}
+</div>
 
-    <div class="cartao">
-      <h2>A base em números</h2>
-      <div class="grade g2">
-        <div class="indicador info"><div class="valor">{{ total_produtos }}</div><div class="rotulo">Modelos</div></div>
-        <div class="indicador ok"><div class="valor">{{ total_homologacoes }}</div><div class="rotulo">Homologações</div></div>
-        <div class="indicador"><div class="valor">{{ total_documentos }}</div><div class="rotulo">Documentos emitidos</div></div>
-        <div class="indicador off"><div class="valor">{{ total_fotos }}</div><div class="rotulo">Fotos</div></div>
-      </div>
-      <hr>
-      <div class="dados">
-        <div class="item"><div class="rot">Anexos arquivados</div><div class="val">{{ total_anexos }}</div></div>
-        <div class="item"><div class="rot">Custo dos processos de {{ hoje.year }}</div>
-          <div class="val">{{ custo_ano|moeda }}</div></div>
-      </div>
-    </div>
+<div class="cartao">
+  <div class="cartao-titulo">
+    <h2>Movimentação recente</h2>
+    <a class="pequeno" href="{{ url_for('processos.lista') }}">ver todos</a>
+  </div>
+  {% if recentes %}
+  <div class="rolagem">
+  <table class="tabela">
+    <thead><tr><th>Processo</th><th>Modelo</th><th>OCD</th><th>Status</th><th class="num">Atualizado</th></tr></thead>
+    <tbody>
+    {% for p in recentes %}
+      <tr>
+        <td class="nowrap"><a href="{{ url_for('processos.detalhe', pid=p.id) }}">{{ p.numero }}</a></td>
+        <td>{{ p.produto.modelo }}</td>
+        <td>{{ p.ocd.nome if p.ocd else '-' }}</td>
+        <td><span class="badge" style="{{ STATUS_ESTILOS.get(p.status, '') }}">{{ p.status }}</span></td>
+        <td class="num pequeno fraco">{{ p.atualizado_em|datahora }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% else %}
+  <div class="vazio"><span class="ico">▦</span>Nenhum processo ainda.
+    <br><a href="{{ url_for('processos.novo') }}">Começar o primeiro</a></div>
+  {% endif %}
+</div>
+
+<div class="cartao">
+  <h2>A base em números</h2>
+  <div class="grade g4">
+    <div class="indicador info"><div class="valor">{{ total_produtos }}</div><div class="rotulo">Modelos</div></div>
+    <div class="indicador ok"><div class="valor">{{ total_homologacoes }}</div><div class="rotulo">Homologações</div></div>
+    <div class="indicador"><div class="valor">{{ total_documentos }}</div><div class="rotulo">Documentos emitidos</div></div>
+    <div class="indicador off"><div class="valor">{{ total_fotos }}</div><div class="rotulo">Fotos</div></div>
+  </div>
+  <hr>
+  <div class="dados">
+    <div class="item"><div class="rot">Anexos arquivados</div><div class="val">{{ total_anexos }}</div></div>
+    <div class="item"><div class="rot">Custo dos processos de {{ hoje.year }}</div>
+      <div class="val">{{ custo_ano|moeda }}</div></div>
   </div>
 </div>
 {% endblock %}
