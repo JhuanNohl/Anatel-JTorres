@@ -80,7 +80,7 @@ code{background:#eef1f2;padding:1px 5px;border-radius:4px;font-size:12.5px;color
 .menu a:hover{background:rgba(255,255,255,.07);text-decoration:none;color:#fff}
 .menu a.ativo{background:rgba(67,176,42,.10);color:#fff;font-weight:600;
   box-shadow:inset 3px 0 0 var(--verde)}
-.menu a .ic{width:16px;text-align:center;flex:none;opacity:.9}
+.menu a .ic{width:16px;height:16px;flex:none;opacity:.9}
 
 .conteudo{margin-left:var(--lateral);padding:0 0 60px}
 .topo{background:var(--branco);border-bottom:1px solid var(--borda);padding:12px 26px;

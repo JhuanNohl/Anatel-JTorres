@@ -9,6 +9,7 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%237AC143'/><text x='16' y='23' font-size='18' font-family='Arial' font-weight='bold' fill='white' text-anchor='middle'>A</text></svg>">
 </head>
 <body>
+{% include "_icones.html" %}
 
 <nav class="lateral">
   <div class="marca">
@@ -23,49 +24,49 @@
   <div class="menu">
     {% set rota = request.path %}
     <a href="{{ url_for('main.painel') }}" class="{{ 'ativo' if rota == '/' }}">
-      <span class="ic">▤</span> Painel</a>
+      <svg class="ic"><use href="#ic-painel"/></svg> Painel</a>
 
     <div class="grupo">Processos</div>
     <a href="{{ url_for('processos.lista') }}" class="{{ 'ativo' if rota.startswith('/processos') and not rota.endswith('/novo') }}">
-      <span class="ic">▦</span> Todos os processos</a>
+      <svg class="ic"><use href="#ic-processos"/></svg> Todos os processos</a>
     <a href="{{ url_for('processos.novo') }}" class="{{ 'ativo' if rota.endswith('/processos/novo') }}">
-      <span class="ic">＋</span> Novo processo</a>
+      <svg class="ic"><use href="#ic-novo-processo"/></svg> Novo processo</a>
     <a href="{{ url_for('homologacoes.lista') }}" class="{{ 'ativo' if rota.startswith('/homologacoes') }}">
-      <span class="ic">✓</span> Homologações</a>
+      <svg class="ic"><use href="#ic-homologacoes"/></svg> Homologações</a>
 
     <div class="grupo">Base de dados</div>
     <a href="{{ url_for('produtos.lista') }}" class="{{ 'ativo' if rota.startswith('/produtos') }}">
-      <span class="ic">▣</span> Produtos / modelos</a>
+      <svg class="ic"><use href="#ic-produtos"/></svg> Produtos / modelos</a>
     <a href="{{ url_for('cadastros.lista', slug='ocds') }}" class="{{ 'ativo' if '/cadastros/ocds' in rota }}">
-      <span class="ic">◉</span> OCDs</a>
+      <svg class="ic"><use href="#ic-ocds"/></svg> OCDs</a>
     <a href="{{ url_for('cadastros.lista', slug='laboratorios') }}" class="{{ 'ativo' if '/cadastros/laboratorios' in rota }}">
-      <span class="ic">◍</span> Laboratórios</a>
+      <svg class="ic"><use href="#ic-laboratorios"/></svg> Laboratórios</a>
     <a href="{{ url_for('cadastros.lista', slug='fabricantes') }}" class="{{ 'ativo' if '/cadastros/fabricantes' in rota }}">
-      <span class="ic">⌂</span> Fabricantes</a>
+      <svg class="ic"><use href="#ic-fabricantes"/></svg> Fabricantes</a>
 
     <div class="grupo">Padrões e documentos</div>
     <a href="{{ url_for('documentos.templates') }}" class="{{ 'ativo' if '/modelos-documento' in rota }}">
-      <span class="ic">✎</span> Modelos de documento</a>
+      <svg class="ic"><use href="#ic-doc-modelos"/></svg> Modelos de documento</a>
     <a href="{{ url_for('cadastros.lista', slug='vistas') }}" class="{{ 'ativo' if '/cadastros/vistas' in rota }}">
-      <span class="ic">◫</span> Vistas de fotos</a>
+      <svg class="ic"><use href="#ic-vistas"/></svg> Vistas de fotos</a>
     <a href="{{ url_for('cadastros.lista', slug='checklist') }}" class="{{ 'ativo' if '/cadastros/checklist' in rota }}">
-      <span class="ic">☑</span> Checklist da OCD</a>
+      <svg class="ic"><use href="#ic-checklist"/></svg> Checklist da OCD</a>
     <a href="{{ url_for('cadastros.lista', slug='categorias-anexo') }}" class="{{ 'ativo' if '/cadastros/categorias-anexo' in rota }}">
-      <span class="ic">🗀</span> Categorias de anexo</a>
+      <svg class="ic"><use href="#ic-anexo-categorias"/></svg> Categorias de anexo</a>
     <a href="{{ url_for('cadastros.lista', slug='status') }}" class="{{ 'ativo' if '/cadastros/status' in rota }}">
-      <span class="ic">◐</span> Status do processo</a>
+      <svg class="ic"><use href="#ic-status"/></svg> Status do processo</a>
 
     <div class="grupo">Administração</div>
     <a href="{{ url_for('main.empresa') }}" class="{{ 'ativo' if '/empresa' in rota }}">
-      <span class="ic">⚙</span> Dados da empresa</a>
+      <svg class="ic"><use href="#ic-empresa"/></svg> Dados da empresa</a>
     <a href="{{ url_for('main.signatarios') }}" class="{{ 'ativo' if '/signatarios' in rota }}">
-      <span class="ic">✍</span> Signatários</a>
+      <svg class="ic"><use href="#ic-signatarios"/></svg> Signatários</a>
     <a href="{{ url_for('main.vistoria_config') }}" class="{{ 'ativo' if '/vistoria' in rota }}">
-      <span class="ic">◎</span> Vistoria de fotos</a>
+      <svg class="ic"><use href="#ic-vistoria"/></svg> Vistoria de fotos</a>
     <a href="{{ url_for('main.backup') }}" class="{{ 'ativo' if '/backup' in rota }}">
-      <span class="ic">⛁</span> Backup</a>
+      <svg class="ic"><use href="#ic-backup"/></svg> Backup</a>
     <a href="{{ url_for('main.ajuda') }}" class="{{ 'ativo' if '/ajuda' in rota }}">
-      <span class="ic">?</span> Como funciona</a>
+      <svg class="ic"><use href="#ic-ajuda"/></svg> Como funciona</a>
   </div>
 </nav>
 
