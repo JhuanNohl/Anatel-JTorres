@@ -6,7 +6,8 @@
 <title>{% block titulo %}Certificação ANATEL{% endblock %} · ZKTeco</title>
 <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/captura.css') }}">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%237AC143'/><text x='16' y='23' font-size='18' font-family='Arial' font-weight='bold' fill='white' text-anchor='middle'>A</text></svg>">
+<link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon-32.png') }}">
+<link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" sizes="16x16 32x32 48x48">
 </head>
 <body>
 {% include "_icones.html" %}
