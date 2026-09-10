@@ -25,7 +25,7 @@
     <a href="{{ url_for('processos.ciberseguranca', pid=p.id) }}" class="{{ 'ativa' if aba == 'ciber' }}">
       Segurança cibernética
       {% if p.ciber_sem_justificativa %}
-      <span class="cont" style="background:#fdecea;color:#96352c">!</span>
+      <span class="cont" style="background:var(--vermelho-suave);color:#96352c">!</span>
       {% elif p.ciber_nao_aplicaveis %}
       <span class="cont">{{ p.ciber_nao_aplicaveis|length }} NA</span>
       {% endif %}
