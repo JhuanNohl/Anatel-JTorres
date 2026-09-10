@@ -128,6 +128,11 @@ code{background:#eef1f2;padding:1px 5px;border-radius:4px;font-size:12.5px;color
 .cartao-titulo h2,.cartao-titulo h3{margin:0}
 
 .grade{display:grid;gap:16px}
+/* grid item nao encolhe abaixo do conteudo por padrao (min-width:auto) - e isso
+   que forcava a pagina inteira a rolar na horizontal quando um card tinha uma
+   tabela larga dentro. Com min-width:0 o card encolhe e quem rola e a tabela
+   (.rolagem), nao a pagina. */
+.grade > *{min-width:0}
 .g2{grid-template-columns:repeat(2,1fr)}
 .g3{grid-template-columns:repeat(3,1fr)}
 .g4{grid-template-columns:repeat(4,1fr)}
@@ -145,7 +150,12 @@ code{background:#eef1f2;padding:1px 5px;border-radius:4px;font-size:12.5px;color
 .versao{display:inline-block;margin-left:6px;padding:1px 6px;border-radius:10px;background:#eef1f2;color:var(--texto-fraco);font-size:10.5px;font-weight:600;letter-spacing:.02em}
 .g5{grid-template-columns:repeat(5,1fr)}
 .versao{display:inline-block;margin-left:6px;padding:1px 6px;border-radius:10px;background:#eef1f2;color:var(--texto-fraco);font-size:10.5px;font-weight:600;letter-spacing:.02em}
-@media (max-width:1200px){.g4,.g5{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:1200px){
+  .g4,.g5{grid-template-columns:repeat(2,1fr)}
+  .g3{grid-template-columns:repeat(2,1fr)}
+  /* colunas largas (tabelas) empilham antes de ficarem apertadas demais */
+  .g2{grid-template-columns:1fr}
+}
 @media (max-width:600px){
   .g2,.g3,.g4,.g5{grid-template-columns:1fr}
   /* nome da empresa/data cede lugar pro menu e a busca, que importam mais aqui */
