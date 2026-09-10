@@ -59,7 +59,7 @@ code{background:#eef1f2;padding:1px 5px;border-radius:4px;font-size:12.5px;color
 
 /* ---------------------------------------------------------------- layout */
 .lateral{
-  position:fixed; inset:0 auto 0 0; width:var(--lateral); background:var(--cinza);
+  position:fixed; inset:0 auto 0 0; width:var(--lateral); background:var(--sidebar);
   color:#e9ebec; display:flex; flex-direction:column; overflow-y:auto; z-index:20;
 }
 .marca{padding:18px 18px 14px; border-bottom:1px solid rgba(255,255,255,.09)}
@@ -75,7 +75,8 @@ code{background:#eef1f2;padding:1px 5px;border-radius:4px;font-size:12.5px;color
 .menu a{display:flex;align-items:center;gap:9px;padding:8px 12px;border-radius:6px;
   color:#dcdfe1;font-size:13.5px;margin-bottom:1px}
 .menu a:hover{background:rgba(255,255,255,.07);text-decoration:none;color:#fff}
-.menu a.ativo{background:var(--verde);color:#fff;font-weight:600}
+.menu a.ativo{background:rgba(67,176,42,.10);color:#fff;font-weight:600;
+  box-shadow:inset 3px 0 0 var(--verde)}
 .menu a .ic{width:16px;text-align:center;flex:none;opacity:.9}
 
 .conteudo{margin-left:var(--lateral);padding:0 0 60px}

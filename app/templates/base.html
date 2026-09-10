@@ -43,7 +43,7 @@
     <a href="{{ url_for('cadastros.lista', slug='fabricantes') }}" class="{{ 'ativo' if '/cadastros/fabricantes' in rota }}">
       <span class="ic">⌂</span> Fabricantes</a>
 
-    <div class="grupo">Padrões</div>
+    <div class="grupo">Padrões e documentos</div>
     <a href="{{ url_for('documentos.templates') }}" class="{{ 'ativo' if '/modelos-documento' in rota }}">
       <span class="ic">✎</span> Modelos de documento</a>
     <a href="{{ url_for('cadastros.lista', slug='vistas') }}" class="{{ 'ativo' if '/cadastros/vistas' in rota }}">
@@ -54,6 +54,8 @@
       <span class="ic">🗀</span> Categorias de anexo</a>
     <a href="{{ url_for('cadastros.lista', slug='status') }}" class="{{ 'ativo' if '/cadastros/status' in rota }}">
       <span class="ic">◐</span> Status do processo</a>
+
+    <div class="grupo">Administração</div>
     <a href="{{ url_for('main.empresa') }}" class="{{ 'ativo' if '/empresa' in rota }}">
       <span class="ic">⚙</span> Dados da empresa</a>
     <a href="{{ url_for('main.signatarios') }}" class="{{ 'ativo' if '/signatarios' in rota }}">
