@@ -3,16 +3,19 @@
 
 {% block conteudo %}
 <div class="linha-flex mb16">
-  <h1 class="mb0">Painel</h1>
+  <div>
+    <h1 class="mb0">Painel</h1>
+    <p class="fraco pequeno mb0">Visão geral dos processos de certificação e homologações.</p>
+  </div>
   <a class="btn btn-primario direita" href="{{ url_for('processos.novo') }}">＋ Novo processo</a>
 </div>
 
 <div class="grade g4 mb16">
   {% for s, quantos in contagens %}
-  <a class="indicador" href="{{ url_for('processos.lista', status=s.nome) }}"
-     style="text-decoration:none;{{ s.estilo_indicador }}">
+  <a class="indicador indicador-status" href="{{ url_for('processos.lista', status=s.nome) }}">
+    <div class="rotulo"><span class="ponto" style="background:{{ s.hex }}"></span>{{ s.nome }}</div>
     <div class="valor">{{ quantos }}</div>
-    <div class="rotulo">{{ s.nome }}</div>
+    <div class="legenda">processo{{ 's' if quantos != 1 else '' }}</div>
   </a>
   {% endfor %}
 </div>
@@ -87,15 +90,17 @@
       {% if vencendo %}
       <div class="rolagem">
       <table class="tabela">
-        <thead><tr><th>Modelo(s)</th><th>Homologação</th><th class="num">Validade</th><th class="num">Dias</th><th></th></tr></thead>
+        <thead><tr><th>Modelo(s)</th><th>Homologação</th><th class="num">Validade</th><th class="num">Situação</th><th></th></tr></thead>
         <tbody>
         {% for h in vencendo %}
+          {% set dias = h.dias_para_vencer %}
           <tr>
             <td><a href="{{ url_for('homologacoes.detalhe', hid=h.id) }}">{{ h.lista_modelos or '-' }}</a></td>
             <td class="num pequeno">{{ h.numero }}</td>
             <td class="num">{{ h.validade|data }}</td>
-            <td class="num {{ 'alerta-critico' if h.alerta in ['critico','vencida'] else 'alerta-atencao' }}">
-              {{ h.dias_para_vencer }}
+            <td class="num {{ 'alerta-critico' if dias < 0 or dias <= 30 else ('alerta-atencao' if dias <= 90 else 'fraco') }}">
+              {%- if dias < 0 %}Vencida há {{ -dias }} dia{{ 's' if -dias != 1 }}
+              {%- else %}Vence em {{ dias }} dia{{ 's' if dias != 1 }}{% endif -%}
             </td>
             <td class="acoes">
               {% if h.aviso_enviado_em %}

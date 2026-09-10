@@ -152,6 +152,14 @@ code{background:#eef1f2;padding:1px 5px;border-radius:4px;font-size:12.5px;color
 .indicador.erro{border-left-color:var(--vermelho,#c0392b)}
 .indicador.neutro{border-left-color:var(--borda)}
 
+/* indicadores de contagem por status (painel): a cor do status vira um
+   ponto ao lado do nome, em vez de tarja na borda */
+.indicador-status{border-left-color:transparent;text-decoration:none}
+.indicador-status .rotulo{display:flex;align-items:center;gap:6px}
+.indicador-status .ponto{width:8px;height:8px;border-radius:50%;flex:none}
+.indicador-status .valor{margin-top:10px}
+.indicador-status .legenda{font-size:12px;color:var(--texto-fraco);margin-top:2px}
+
 /* ---------------------------------------------------------------- tabelas */
 .tabela{width:100%;border-collapse:collapse;font-size:13px}
 .tabela th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.6px;
