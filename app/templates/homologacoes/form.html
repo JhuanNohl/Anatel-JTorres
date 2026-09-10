@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block titulo %}{{ 'Editar homologação' if reg else 'Nova homologação' }}{% endblock %}
+
+{% block conteudo %}
+<h1>{{ reg.numero if reg else 'Nova homologação' }}</h1>
+
+<form method="post">
+<div class="grade g2">
+  <div class="cartao">
+    <h3>Identificação</h3>
+    <div class="campos">
+      <div class="campo">
+        <label>Nº de homologação</label>
+        <input type="text" name="numero" value="{{ reg.numero if reg else '' }}" placeholder="00000-00-00000">
+      </div>
+      <div class="campo">
+        <label>Certificado de conformidade (CCT)</label>
+        <input type="text" name="certificado" value="{{ reg.certificado if reg else '' }}" placeholder="Ex.: OCP 07622">
+      </div>
+      <div class="grade g2">
+        <div class="campo">
+          <label>Validade</label>
+          <input type="date" name="validade" value="{{ reg.validade.isoformat() if reg and reg.validade else '' }}">
+        </div>
+        <div class="campo">
+          <label>Situação</label>
+          <select name="situacao">
+            {% for s in SITUACOES_HOMOLOGACAO %}
+            <option value="{{ s }}" {{ 'selected' if reg and reg.situacao == s }}>{{ s }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="campo">
+        <label>OCD</label>
+        <select name="ocd_id">
+          <option value="">—</option>
+          {% for o in ocds %}
+          <option value="{{ o.id }}" {{ 'selected' if reg and reg.ocd_id == o.id }}>{{ o.nome }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="linha-check">
+        <input type="checkbox" name="renovar" id="renovar" value="1" {{ 'checked' if reg and reg.renovar }}>
+        <label for="renovar">Marcada para renovar</label>
+      </div>
+    </div>
+  </div>
+
+  <div class="cartao">
+    <h3>Escopo</h3>
+    <div class="campos">
+      <div class="campo">
+        <label>Natureza</label>
+        <select name="natureza">
+          {% for n in NATUREZAS_PRODUTO %}
+          <option value="{{ n }}" {{ 'selected' if reg and reg.natureza == n }}>{{ n }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="campo">
+        <label>Tipo</label>
+        <input type="text" name="tipo" value="{{ reg.tipo if reg else '' }}"
+               placeholder="Ex.: Módulo Wi-Fi, Leitor de cartão 13,56MHz">
+      </div>
+      <div class="campo">
+        <label>Modelos cobertos (um por linha)</label>
+        <textarea name="modelos" rows="5">{% if reg %}{% for m in reg.modelos %}{{ m.modelo }}
+{% endfor %}{% endif %}</textarea>
+        <span class="dica">Modelos que já existem na base de produtos são vinculados automaticamente.</span>
+      </div>
+      {% if reg %}
+      <div class="campo">
+        <label>Produtos que utilizam este módulo</label>
+        <div class="pequeno fraco">
+          {% if reg.aplicacoes_produtos %}
+          {{ reg.aplicacoes_produtos|length }} produto(s) vinculado(s).
+          {% else %}Nenhum vínculo ainda.{% endif %}
+          Inclua e remova na
+          <a href="{{ url_for('homologacoes.detalhe', hid=reg.id) }}#produtos">tela da
+          homologação</a> — lá cada produto é um vínculo, com link para a ficha dele.
+        </div>
+      </div>
+      {% endif %}
+      <div class="campo">
+        <label>Observações</label>
+        <textarea name="observacoes" rows="2">{{ reg.observacoes if reg else '' }}</textarea>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="barra-acoes">
+  <button class="btn btn-primario">Salvar</button>
+  <a class="btn" href="{{ url_for('homologacoes.detalhe', hid=reg.id) if reg else url_for('homologacoes.lista') }}">Cancelar</a>
+</div>
+</form>
+{% endblock %}

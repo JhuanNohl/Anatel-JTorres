@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block titulo %}Certificação ANATEL{% endblock %} · ZKTeco</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/captura.css') }}">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%237AC143'/><text x='16' y='23' font-size='18' font-family='Arial' font-weight='bold' fill='white' text-anchor='middle'>A</text></svg>">
+</head>
+<body>
+
+<nav class="lateral">
+  <div class="marca">
+    <div class="logo">
+      <span class="quadro">A</span>
+      <div>
+        <strong>Certificação ANATEL</strong>
+        <span>{{ empresa_atual.nome_fantasia or 'ZKTeco do Brasil' }}</span>
+      </div>
+    </div>
+  </div>
+  <div class="menu">
+    {% set rota = request.path %}
+    <a href="{{ url_for('main.painel') }}" class="{{ 'ativo' if rota == '/' }}">
+      <span class="ic">▤</span> Painel</a>
+
+    <div class="grupo">Processos</div>
+    <a href="{{ url_for('processos.lista') }}" class="{{ 'ativo' if rota.startswith('/processos') and not rota.endswith('/novo') }}">
+      <span class="ic">▦</span> Todos os processos</a>
+    <a href="{{ url_for('processos.novo') }}" class="{{ 'ativo' if rota.endswith('/processos/novo') }}">
+      <span class="ic">＋</span> Novo processo</a>
+    <a href="{{ url_for('homologacoes.lista') }}" class="{{ 'ativo' if rota.startswith('/homologacoes') }}">
+      <span class="ic">✓</span> Homologações</a>
+
+    <div class="grupo">Base de dados</div>
+    <a href="{{ url_for('produtos.lista') }}" class="{{ 'ativo' if rota.startswith('/produtos') }}">
+      <span class="ic">▣</span> Produtos / modelos</a>
+    <a href="{{ url_for('cadastros.lista', slug='ocds') }}" class="{{ 'ativo' if '/cadastros/ocds' in rota }}">
+      <span class="ic">◉</span> OCDs</a>
+    <a href="{{ url_for('cadastros.lista', slug='laboratorios') }}" class="{{ 'ativo' if '/cadastros/laboratorios' in rota }}">
+      <span class="ic">◍</span> Laboratórios</a>
+    <a href="{{ url_for('cadastros.lista', slug='fabricantes') }}" class="{{ 'ativo' if '/cadastros/fabricantes' in rota }}">
+      <span class="ic">⌂</span> Fabricantes</a>
+
+    <div class="grupo">Padrões</div>
+    <a href="{{ url_for('documentos.templates') }}" class="{{ 'ativo' if '/modelos-documento' in rota }}">
+      <span class="ic">✎</span> Modelos de documento</a>
+    <a href="{{ url_for('cadastros.lista', slug='vistas') }}" class="{{ 'ativo' if '/cadastros/vistas' in rota }}">
+      <span class="ic">◫</span> Vistas de fotos</a>
+    <a href="{{ url_for('cadastros.lista', slug='checklist') }}" class="{{ 'ativo' if '/cadastros/checklist' in rota }}">
+      <span class="ic">☑</span> Checklist da OCD</a>
+    <a href="{{ url_for('cadastros.lista', slug='categorias-anexo') }}" class="{{ 'ativo' if '/cadastros/categorias-anexo' in rota }}">
+      <span class="ic">🗀</span> Categorias de anexo</a>
+    <a href="{{ url_for('cadastros.lista', slug='status') }}" class="{{ 'ativo' if '/cadastros/status' in rota }}">
+      <span class="ic">◐</span> Status do processo</a>
+    <a href="{{ url_for('main.empresa') }}" class="{{ 'ativo' if '/empresa' in rota }}">
+      <span class="ic">⚙</span> Dados da empresa</a>
+    <a href="{{ url_for('main.signatarios') }}" class="{{ 'ativo' if '/signatarios' in rota }}">
+      <span class="ic">✍</span> Signatários</a>
+    <a href="{{ url_for('main.vistoria_config') }}" class="{{ 'ativo' if '/vistoria' in rota }}">
+      <span class="ic">◎</span> Vistoria de fotos</a>
+    <a href="{{ url_for('main.backup') }}" class="{{ 'ativo' if '/backup' in rota }}">
+      <span class="ic">⛁</span> Backup</a>
+    <a href="{{ url_for('main.ajuda') }}" class="{{ 'ativo' if '/ajuda' in rota }}">
+      <span class="ic">?</span> Como funciona</a>
+  </div>
+</nav>
+
+<main class="conteudo">
+  <div class="topo nao-imprimir">
+    <form action="{{ url_for('main.busca') }}" method="get" role="search">
+      <input type="search" name="q" placeholder="Buscar modelo, processo, homologação, anexo…"
+             value="{{ request.args.get('q','') }}">
+      <button class="btn" type="submit">Buscar</button>
+    </form>
+    <div class="contexto">
+      {{ empresa_atual.razao_social or 'Configure os dados da empresa' }}<br>
+      <small>{{ hoje.strftime('%d/%m/%Y') }}
+        <span class="versao" title="Versão do sistema instalada neste servidor">{{ VERSAO_ROTULO }}</span>
+      </small>
+    </div>
+  </div>
+
+  {% with mensagens = get_flashed_messages(with_categories=true) %}
+    {% if mensagens %}
+    <div class="flashes">
+      {% for categoria, texto in mensagens %}
+        <div class="aviso {{ categoria if categoria in ['ok','erro','info'] else 'info' }}">
+          <span>{{ '✓' if categoria == 'ok' else '!' }}</span><div>{{ texto }}</div>
+        </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  {% endwith %}
+
+  <div class="interno">
+    {% block conteudo %}{% endblock %}
+  </div>
+</main>
+
+{% block scripts %}{% endblock %}
+</body>
+</html>

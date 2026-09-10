@@ -1,0 +1,573 @@
+/* Sistema de Certificacao ANATEL - ZKTeco Brasil
+   Paleta: #7AC143 primario | #474B4F secundario | #649E37 realce | #555555 texto */
+
+:root{
+  --verde:#7AC143;
+  --verde-esc:#649E37;
+  --cinza:#474B4F;
+  --texto:#555555;
+  --texto-fraco:#8b9094;
+  --borda:#e2e6e8;
+  --fundo:#f5f7f8;
+  --branco:#ffffff;
+  --amarelo:#E8A33D;
+  --vermelho:#D0554B;
+  --azul:#4A8FB5;
+  --raio:8px;
+  --sombra:0 1px 2px rgba(71,75,79,.08), 0 2px 8px rgba(71,75,79,.06);
+  --lateral:236px;
+}
+
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  font-family:"Segoe UI",Roboto,Arial,sans-serif;
+  font-size:14px; color:var(--texto); background:var(--fundo); line-height:1.5;
+}
+a{color:var(--verde-esc); text-decoration:none}
+a:hover{text-decoration:underline}
+h1,h2,h3,h4{color:var(--cinza); margin:0 0 12px; font-weight:600; line-height:1.25}
+h1{font-size:22px} h2{font-size:18px} h3{font-size:15px} h4{font-size:13px}
+p{margin:0 0 10px}
+small{font-size:12px}
+hr{border:none;border-top:1px solid var(--borda);margin:18px 0}
+code{background:#eef1f2;padding:1px 5px;border-radius:4px;font-size:12.5px;color:var(--cinza)}
+
+/* ---------------------------------------------------------------- layout */
+.lateral{
+  position:fixed; inset:0 auto 0 0; width:var(--lateral); background:var(--cinza);
+  color:#e9ebec; display:flex; flex-direction:column; overflow-y:auto; z-index:20;
+}
+.marca{padding:18px 18px 14px; border-bottom:1px solid rgba(255,255,255,.09)}
+.marca .logo{display:flex;align-items:center;gap:9px}
+.marca .quadro{width:26px;height:26px;border-radius:6px;background:var(--verde);
+  display:grid;place-items:center;color:#fff;font-weight:700;font-size:13px;flex:none}
+.marca strong{color:#fff;font-size:14.5px;letter-spacing:.2px}
+.marca span{display:block;font-size:11px;color:#a9aeb2;margin-top:2px}
+
+.menu{padding:10px 8px 20px}
+.menu .grupo{font-size:10.5px;text-transform:uppercase;letter-spacing:.9px;color:#8b9296;
+  padding:14px 12px 6px;font-weight:600}
+.menu a{display:flex;align-items:center;gap:9px;padding:8px 12px;border-radius:6px;
+  color:#dcdfe1;font-size:13.5px;margin-bottom:1px}
+.menu a:hover{background:rgba(255,255,255,.07);text-decoration:none;color:#fff}
+.menu a.ativo{background:var(--verde);color:#fff;font-weight:600}
+.menu a .ic{width:16px;text-align:center;flex:none;opacity:.9}
+
+.conteudo{margin-left:var(--lateral);padding:0 0 60px}
+.topo{background:var(--branco);border-bottom:1px solid var(--borda);padding:12px 26px;
+  display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:10}
+.topo form{flex:1;max-width:480px;display:flex;gap:6px}
+.topo .contexto{margin-left:auto;font-size:12px;color:var(--texto-fraco);text-align:right}
+.interno{padding:22px 26px}
+
+/* ---------------------------------------------------------------- cartoes */
+.cartao{background:var(--branco);border:1px solid var(--borda);border-radius:var(--raio);
+  box-shadow:var(--sombra);padding:18px;margin-bottom:18px}
+.cartao.compacto{padding:14px}
+.cartao > h2:first-child,.cartao > h3:first-child{margin-top:0}
+.cartao-titulo{display:flex;align-items:center;justify-content:space-between;gap:12px;
+  margin-bottom:14px;flex-wrap:wrap}
+.cartao-titulo h2,.cartao-titulo h3{margin:0}
+
+.grade{display:grid;gap:16px}
+.g2{grid-template-columns:repeat(2,1fr)}
+.g3{grid-template-columns:repeat(3,1fr)}
+.g4{grid-template-columns:repeat(4,1fr)}
+.g5{grid-template-columns:repeat(5,1fr)}
+/* ------------------------------------------------------ filtro ao vivo */
+.filtro-linha{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.filtro-linha input[type=search]{flex:1;min-width:200px}
+.filtro-etiquetas{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;align-items:center}
+.chip-filtro{display:inline-flex;align-items:center;gap:6px;background:#eef7e6;
+  border-color:#cfe6b8;color:#4e7d2a;font-weight:600}
+.chip-filtro button{border:none;background:none;color:inherit;cursor:pointer;padding:0;
+  font-size:14px;line-height:1;opacity:.65}
+.chip-filtro button:hover{opacity:1}
+[data-filtro-conta].filtrando{color:var(--verde-esc);font-weight:600}
+.versao{display:inline-block;margin-left:6px;padding:1px 6px;border-radius:10px;background:#eef1f2;color:var(--texto-fraco);font-size:10.5px;font-weight:600;letter-spacing:.02em}
+.g5{grid-template-columns:repeat(5,1fr)}
+.versao{display:inline-block;margin-left:6px;padding:1px 6px;border-radius:10px;background:#eef1f2;color:var(--texto-fraco);font-size:10.5px;font-weight:600;letter-spacing:.02em}
+@media (max-width:1200px){.g4,.g5{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:820px){.g2,.g3,.g4,.g5{grid-template-columns:1fr}}
+
+.indicador{background:var(--branco);border:1px solid var(--borda);border-radius:var(--raio);
+  padding:14px 16px;box-shadow:var(--sombra);border-left:4px solid var(--verde)}
+.indicador .valor{font-size:26px;font-weight:600;color:var(--cinza);line-height:1.1}
+.indicador .rotulo{font-size:12px;color:var(--texto-fraco);text-transform:uppercase;
+  letter-spacing:.6px;margin-top:4px}
+/* segunda unidade do cartao: modelos x certificados, para as telas fecharem */
+.indicador .contra{font-size:11px;color:var(--texto-fraco);margin-top:4px;line-height:1.3}
+.indicador .contra strong{color:var(--cinza);font-weight:600}
+.conferencia{font-size:12px;color:var(--texto-fraco);margin:-4px 0 16px}
+.conferencia strong{color:var(--cinza)}
+.ensaios{font-style:italic}
+.indicador.info{border-left-color:var(--azul)}
+.indicador.warn{border-left-color:var(--amarelo)}
+.indicador.ok{border-left-color:var(--verde)}
+.indicador.off{border-left-color:#b6bbbe}
+.indicador.erro{border-left-color:var(--vermelho,#c0392b)}
+.indicador.neutro{border-left-color:var(--borda)}
+
+/* ---------------------------------------------------------------- tabelas */
+.tabela{width:100%;border-collapse:collapse;font-size:13.5px}
+.tabela th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.6px;
+  color:var(--texto-fraco);font-weight:600;padding:8px 10px;border-bottom:2px solid var(--borda);
+  white-space:nowrap}
+.tabela td{padding:9px 10px;border-bottom:1px solid var(--borda);vertical-align:middle}
+.tabela tr:hover td{background:#fafbfb}
+.tabela .num{font-variant-numeric:tabular-nums;white-space:nowrap}
+.tabela .acoes{text-align:right;white-space:nowrap}
+.rolagem{overflow-x:auto}
+
+/* ---------------------------------------------------------------- badges */
+.badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11.5px;
+  font-weight:600;white-space:nowrap;border:1px solid transparent}
+.badge.ok{background:#eef7e6;color:#4e7d2a;border-color:#d5e9c2}
+.badge.info{background:#eaf3f8;color:#37718f;border-color:#cfe3ee}
+.badge.warn{background:#fdf3e3;color:#96631a;border-color:#f5e0bd}
+.badge.off{background:#f0f1f2;color:#767c80;border-color:#e2e5e7}
+.badge.erro{background:#fdecea;color:#a63a30;border-color:#f5cfca}
+.badge.neutro{background:#f5f7f8;color:var(--texto);border-color:var(--borda)}
+
+.chip{display:inline-block;background:#f0f3f4;border:1px solid var(--borda);border-radius:5px;
+  padding:2px 8px;font-size:12px;margin:0 4px 4px 0;color:var(--cinza)}
+
+/* ---------------------------------------------------------------- botoes */
+.btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--borda);
+  background:var(--branco);color:var(--cinza);padding:7px 13px;border-radius:6px;
+  font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;line-height:1.3}
+.btn:hover{background:#f7f9f9;text-decoration:none;border-color:#cdd3d6}
+.btn-primario{background:var(--verde);border-color:var(--verde);color:#fff}
+.btn-primario:hover{background:var(--verde-esc);border-color:var(--verde-esc);color:#fff}
+.btn-escuro{background:var(--cinza);border-color:var(--cinza);color:#fff}
+.btn-escuro:hover{background:#3b3f42;color:#fff}
+.btn-perigo{color:var(--vermelho);border-color:#f0d2ce}
+.btn-perigo:hover{background:#fdf1f0}
+.btn-mini{padding:4px 9px;font-size:12px}
+.btn svg{width:14px;height:14px;flex:none}
+.btn-mini svg{width:13px;height:13px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+
+/* botoes de icone (lapis, lixeira) nas linhas das tabelas.
+   O <form> do POST e bloco por natureza e quebrava a linha - dai o flex. */
+.acoes-icones{display:inline-flex;gap:6px;align-items:center;justify-content:flex-end}
+.acoes-icones form{margin:0;display:inline-flex}
+.btn-ico{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;
+  padding:0;border:1px solid var(--borda);border-radius:6px;background:var(--branco);
+  color:var(--texto-fraco);cursor:pointer;line-height:0;flex:none}
+.btn-ico svg{width:15px;height:15px}
+.btn-ico:hover{background:#f3f9ec;border-color:var(--verde);color:var(--verde-esc);
+  text-decoration:none}
+.btn-ico.perigo:hover{background:#fdf1f0;border-color:#e8b4ae;color:var(--vermelho)}
+
+/* ------------------------------------------------------------ seletor de cor */
+.seletor-cor{display:flex;flex-direction:column;gap:9px}
+.cor-previa{display:flex;align-items:center;gap:9px;min-height:26px}
+.cor-previa .badge{font-size:12px;padding:3px 11px}
+.cor-previa code{font-size:11.5px;color:var(--texto-fraco)}
+.cor-paleta{display:grid;grid-template-columns:repeat(9,1fr);gap:6px;max-width:340px}
+.cor-amostra{width:100%;aspect-ratio:1;min-height:22px;border:1px solid rgba(0,0,0,.14);
+  border-radius:5px;cursor:pointer;padding:0;box-shadow:inset 0 0 0 2px #fff0}
+.cor-amostra:hover{transform:scale(1.12)}
+.cor-amostra.escolhida{box-shadow:inset 0 0 0 2px #fff,0 0 0 2px var(--cinza)}
+.cor-livre{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;
+  color:var(--texto-fraco);cursor:pointer;width:max-content}
+.cor-livre input[type=color]{width:38px;height:26px;padding:0;border:1px solid var(--borda);
+  border-radius:5px;background:none;cursor:pointer}
+.barra-acoes{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+
+/* ---------------------------------------------------------------- formularios */
+.campos{display:grid;gap:14px}
+.campo label{display:block;font-size:12px;font-weight:600;color:var(--cinza);margin-bottom:4px}
+.campo .dica{font-size:11.5px;color:var(--texto-fraco);margin-top:4px;display:block}
+input[type=text],input[type=date],input[type=number],input[type=email],input[type=search],
+input[type=file],select,textarea{
+  width:100%;padding:8px 10px;border:1px solid var(--borda);border-radius:6px;font-size:13.5px;
+  font-family:inherit;color:var(--texto);background:var(--branco)}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--verde);
+  box-shadow:0 0 0 3px rgba(122,193,67,.15)}
+textarea{min-height:90px;resize:vertical}
+textarea.codigo{font-family:Consolas,"Courier New",monospace;font-size:12.5px;min-height:340px;
+  line-height:1.6}
+.linha-check{display:flex;align-items:flex-start;gap:8px;font-size:13.5px}
+.linha-check input{width:auto;margin-top:2px}
+.linha-check label{font-weight:500;margin:0;font-size:13.5px}
+fieldset{border:1px solid var(--borda);border-radius:var(--raio);padding:14px 16px;margin:0 0 16px}
+legend{font-size:12px;font-weight:700;color:var(--cinza);text-transform:uppercase;
+  letter-spacing:.6px;padding:0 6px}
+.filtros{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;margin-bottom:16px}
+.filtros .campo{min-width:150px}
+
+/* ---------------------------------------------------------------- avisos */
+.flashes{padding:12px 26px 0}
+.aviso{border-radius:var(--raio);padding:11px 14px;margin-bottom:10px;font-size:13.5px;
+  border:1px solid transparent;display:flex;gap:9px;align-items:flex-start}
+.aviso.ok{background:#eef7e6;border-color:#cfe6b8;color:#456e26}
+.aviso.erro{background:#fdecea;border-color:#f3cbc6;color:#96352c}
+.aviso.info{background:#eaf3f8;border-color:#cbe0ec;color:#31647f}
+.aviso.atencao{background:#fdf3e3;border-color:#f0dcb6;color:#8a5c17}
+.vazio{text-align:center;padding:34px 18px;color:var(--texto-fraco);font-size:13.5px}
+.vazio .ico{font-size:30px;display:block;margin-bottom:8px;opacity:.5}
+
+/* ---------------------------------------------------------------- abas */
+.cabeca-processo{background:var(--branco);border:1px solid var(--borda);
+  border-radius:var(--raio) var(--raio) 0 0;padding:16px 18px 0;box-shadow:var(--sombra);
+  margin-bottom:18px}
+.cabeca-processo .linha1{display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap}
+.cabeca-processo h1{margin:0 0 4px;font-size:20px}
+.cabeca-processo .meta{font-size:12.5px;color:var(--texto-fraco)}
+.cabeca-processo .direita{margin-left:auto;display:flex;gap:8px;align-items:center}
+.abas{display:flex;gap:2px;margin-top:14px;overflow-x:auto;border-bottom:1px solid var(--borda)}
+.abas a{padding:9px 14px;font-size:13px;color:var(--texto);border-bottom:2px solid transparent;
+  white-space:nowrap;font-weight:500}
+.abas a:hover{color:var(--cinza);text-decoration:none;background:#fafbfb}
+.abas a.ativa{color:var(--verde-esc);border-bottom-color:var(--verde);font-weight:600}
+.abas a .cont{background:#eef1f2;border-radius:10px;padding:0 6px;font-size:11px;
+  margin-left:5px;color:var(--texto-fraco)}
+
+/* ---------------------------------------------------------------- dados */
+.dados{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px 20px}
+.dados .item .rot{font-size:11px;text-transform:uppercase;letter-spacing:.5px;
+  color:var(--texto-fraco);font-weight:600}
+.dados .item .val{font-size:13.5px;color:var(--cinza)}
+.progresso{height:7px;background:#eceff0;border-radius:5px;overflow:hidden}
+.progresso i{display:block;height:100%;background:var(--verde);border-radius:5px}
+
+/* ---------------------------------------------------------------- fotos */
+.vistas{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px}
+.vista{background:var(--branco);border:1px solid var(--borda);border-radius:var(--raio);
+  overflow:hidden;box-shadow:var(--sombra);display:flex;flex-direction:column}
+.vista.pendente{border-color:#f0d9b4}
+.vista.pronta{border-color:#cfe6b8}
+.vista.dispensada{opacity:.62;background:#fafbfb}
+.vista.dispensada .exemplo{filter:grayscale(1)}
+.vista .topo-vista{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;
+  border-bottom:1px solid var(--borda)}
+.vista .topo-vista h3{margin:0;font-size:14px}
+.vista .exemplo{background:#fbfcfc;padding:6px;display:grid;place-items:center;
+  border-bottom:1px solid var(--borda)}
+.vista .exemplo svg{width:100%;max-width:300px;height:auto}
+.vista .corpo{padding:12px 14px;font-size:12.5px;flex:1}
+.vista .corpo .dica-vista{background:#fdf7ea;border-left:3px solid var(--amarelo);
+  padding:7px 9px;border-radius:0 5px 5px 0;margin-top:8px;font-size:12px}
+.vista .rodape{padding:10px 14px;border-top:1px solid var(--borda);background:#fbfcfc}
+.miniaturas{display:flex;gap:8px;flex-wrap:wrap;padding:0 14px 12px}
+.mini{position:relative;width:92px}
+.mini img{width:92px;height:70px;object-fit:cover;border:1px solid var(--borda);
+  border-radius:5px;display:block;background:#f0f2f3}
+.mini form{position:absolute;top:3px;right:3px}
+.mini .x{background:rgba(71,75,79,.85);color:#fff;border:none;border-radius:4px;
+  width:21px;height:21px;line-height:0;cursor:pointer;padding:0;
+  display:inline-flex;align-items:center;justify-content:center}
+.mini .x svg{width:12px;height:12px}
+.mini .x:hover{background:var(--vermelho)}
+.mini small{display:block;font-size:10.5px;color:var(--texto-fraco);margin-top:3px;
+  word-break:break-all;line-height:1.3}
+.upload-inline{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.upload-inline input[type=file]{flex:1;min-width:150px;font-size:12px;padding:5px}
+
+/* ---- envio de fotos: botao proprio no lugar do campo cru do navegador */
+.botao-arquivo{position:relative;overflow:hidden;display:inline-flex;cursor:pointer}
+.botao-arquivo input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;
+  width:100%;height:100%;padding:0;min-width:0}
+.botao-arquivo span{display:inline-flex;align-items:center;gap:6px;background:var(--verde);
+  border:1px solid var(--verde);color:#fff;padding:7px 13px;border-radius:6px;font-size:13px;
+  font-weight:600;white-space:nowrap}
+.botao-arquivo:hover span{background:var(--verde-esc);border-color:var(--verde-esc)}
+.dica-arrastar{font-size:11.5px;color:var(--texto-fraco)}
+@media (hover:none){.dica-arrastar{display:none}}
+
+.estado-envio{margin-top:8px;font-size:12.5px;padding:6px 9px;border-radius:5px;font-weight:600}
+.estado-envio.carregando{background:#eaf3f8;color:#31647f}
+.estado-envio.carregando::before{content:"";display:inline-block;width:11px;height:11px;
+  margin-right:7px;border:2px solid #9fc4d6;border-top-color:#31647f;border-radius:50%;
+  vertical-align:-1px;animation:girando .7s linear infinite}
+.estado-envio.ok{background:#eef7e6;color:#456e26}
+.estado-envio.erro{background:#fdecea;color:#96352c}
+@keyframes girando{to{transform:rotate(360deg)}}
+
+/* com JS ativo a foto sobe sozinha: o botao Enviar sai de cena */
+.area-fotos.envio-automatico .botao-enviar{display:none}
+.vista.arrastando,.cartao.arrastando{outline:2px dashed var(--verde);outline-offset:-3px;
+  background:#f3faec}
+.vista.enviando{opacity:.75}
+.mini.nova img{animation:surgindo .5s ease}
+@keyframes surgindo{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:none}}
+.mini a{display:block;cursor:zoom-in}
+
+/* ---- checklist de requisitos */
+.requisitos{border:1px solid var(--borda);border-radius:var(--raio);overflow:hidden}
+.requisito{display:grid;grid-template-columns:26px 1fr auto;gap:12px;align-items:start;
+  padding:11px 14px;border-bottom:1px solid var(--borda);background:var(--branco)}
+.requisito:last-child{border-bottom:none}
+.requisito:hover{background:#fbfcfc}
+.requisito.feito{background:#fcfdfb}
+
+.req-marca{width:20px;height:20px;border-radius:50%;border:2px solid #d5d9db;
+  display:grid;place-items:center;font-size:12px;font-weight:700;color:#fff;margin-top:1px;
+  flex:none;line-height:1}
+.req-marca.ok{background:var(--verde);border-color:var(--verde)}
+.req-marca.warn{border-color:var(--amarelo);background:#fdf3e3}
+.req-marca.neutro{background:#c9ced1;border-color:#c9ced1}
+.req-marca.off{background:transparent}
+
+.req-texto{min-width:0}
+.req-titulo{font-size:13.5px;color:var(--cinza);font-weight:500;line-height:1.4}
+.requisito.feito .req-titulo{color:var(--texto-fraco);font-weight:400}
+.req-texto details summary{list-style:none;cursor:pointer;display:block}
+.req-texto details summary::-webkit-details-marker{display:none}
+.req-abrir{font-size:11px;color:var(--verde-esc);margin-left:6px;white-space:nowrap;
+  border-bottom:1px dotted var(--verde-esc)}
+.req-texto details[open] .req-abrir{color:var(--texto-fraco);border-color:var(--texto-fraco)}
+.req-exigencia{margin:8px 0 2px;padding:9px 11px;background:#fbfcfc;font-size:12.5px;
+  border-left:3px solid var(--verde);border-radius:0 5px 5px 0;white-space:pre-line;
+  color:var(--texto)}
+.req-evidencia{font-size:12px;color:var(--texto-fraco);margin-top:3px}
+.req-evidencia.ok{color:var(--verde-esc);font-weight:600}
+.req-obs{font-size:11.5px;color:var(--texto-fraco);margin-top:3px;font-style:italic}
+
+.req-acao{display:flex;align-items:center;gap:6px;flex:none}
+select.status-select{width:auto;font-size:12px;font-weight:600;padding:5px 26px 5px 10px;
+  border-radius:20px;cursor:pointer;appearance:none;
+  background-image:url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23555' stroke-width='1.8'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 9px center;background-size:9px}
+select.status-select.ok{background-color:#eef7e6;color:#4e7d2a;border-color:#cfe6b8}
+select.status-select.warn{background-color:#fdf3e3;color:#96631a;border-color:#f0dcbb}
+select.status-select.off{background-color:#f3f4f5;color:#767c80;border-color:var(--borda)}
+select.status-select.neutro{background-color:#eef0f1;color:#5d6367;border-color:var(--borda)}
+.req-excluir{border:none;background:none;color:#c8ced1;line-height:0;
+  cursor:pointer;padding:5px;border-radius:5px;
+  display:inline-flex;align-items:center;justify-content:center}
+.req-excluir svg{width:14px;height:14px}
+.req-excluir:hover{background:#fdecea;color:var(--vermelho)}
+.chip.verde{background:#eef7e6;border-color:#cfe6b8;color:#4e7d2a;font-weight:600}
+
+/* ---- formulário de segurança cibernética (C / NA) */
+.requisito.ciber .req-titulo{font-weight:400;color:var(--texto);font-size:13px}
+.requisito.ciber .req-titulo strong{color:var(--cinza);margin-right:3px}
+.requisito.ciber.na{background:#fffdf7}
+.requisito.ciber .req-marca{font-size:10.5px}
+.ciber-justificativa{display:none;margin-top:7px}
+.ciber-justificativa.ativa{display:block}
+.ciber-justificativa input{font-size:12.5px;padding:6px 9px}
+.ciber-justificativa input.faltando{border-color:var(--vermelho);background:#fdf6f5}
+@media (max-width:820px){
+  .requisito{grid-template-columns:22px 1fr}
+  .req-acao{grid-column:2;justify-content:flex-start;margin-top:6px}
+}
+
+/* ---- identidade visual: logotipo e assinatura */
+.identidade{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
+.identidade-previa{flex:none;width:230px;min-height:92px;border:1px solid var(--borda);
+  border-radius:var(--raio);background:#fff;display:grid;place-items:center;padding:10px;
+  background-image:linear-gradient(45deg,#f4f6f7 25%,transparent 25%,transparent 75%,#f4f6f7 75%),
+    linear-gradient(45deg,#f4f6f7 25%,transparent 25%,transparent 75%,#f4f6f7 75%);
+  background-size:14px 14px;background-position:0 0,7px 7px}
+.identidade-previa img{max-width:100%;max-height:80px;object-fit:contain}
+.identidade-previa.vazia{border-style:dashed;background:#fbfcfc}
+.identidade-previa.vazia span{font-size:12px;color:var(--texto-fraco)}
+.identidade-texto{flex:1;min-width:240px}
+.identidade-texto .barra-acoes{margin-bottom:8px}
+
+/* ---- visor de fotos (pop up) */
+.visor{position:fixed;inset:0;z-index:100;background:rgba(38,41,43,.92);
+  display:flex;flex-direction:column;animation:aparecer .15s ease}
+.visor[hidden]{display:none}
+@keyframes aparecer{from{opacity:0}to{opacity:1}}
+.visor-topo{display:flex;align-items:center;gap:14px;padding:12px 18px;color:#fff;
+  background:rgba(0,0,0,.35);flex-wrap:wrap}
+.visor-topo .visor-titulo{font-size:15px;font-weight:600;display:block;line-height:1.3}
+.visor-topo .visor-info{font-size:12px;color:#c3c8cb}
+.visor-acoes{margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.visor-acoes .btn{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.28);color:#fff}
+.visor-acoes .btn:hover{background:rgba(255,255,255,.22);color:#fff}
+.visor-acoes .btn-perigo{color:#ffb9b2;border-color:rgba(255,160,150,.45)}
+.visor-acoes .btn-perigo:hover{background:rgba(255,120,110,.22)}
+.visor-palco{flex:1;display:flex;align-items:center;justify-content:center;gap:10px;
+  padding:14px 18px;min-height:0}
+.visor-palco img{cursor:zoom-in;transition:transform .12s ease-out;
+  max-width:100%;max-height:100%;object-fit:contain;border-radius:6px;
+  background:#fff;box-shadow:0 6px 30px rgba(0,0,0,.45)}
+.visor-nav{background:rgba(255,255,255,.14);border:none;color:#fff;font-size:30px;line-height:1;
+  width:46px;height:70px;border-radius:8px;cursor:pointer;flex:none}
+.visor-nav:hover{background:rgba(255,255,255,.26)}
+.visor-nav[hidden]{visibility:hidden;display:block}
+.visor-palco img.ampliada{cursor:zoom-out}
+.visor-rodape{text-align:center;color:#c3c8cb;font-size:12.5px;padding:0 18px 14px}
+.visor-rodape kbd{background:rgba(255,255,255,.14);border-radius:4px;padding:1px 6px;
+  font-family:inherit;font-size:11.5px}
+@media (max-width:700px){
+  .visor-nav{width:38px;height:56px;font-size:24px}
+  .visor-topo{padding:10px 12px}
+}
+
+/* ---------------------------------------------------------------- documentos */
+.folha{background:#fff;border:1px solid var(--borda);border-radius:var(--raio);
+  padding:2.2cm 2cm;max-width:21cm;margin:0 auto 18px;box-shadow:var(--sombra);
+  font-size:13.5px;line-height:1.55;color:#3f4245}
+.folha .cabecalho-doc{display:flex;justify-content:space-between;align-items:flex-start;
+  gap:20px;border-bottom:1px solid var(--borda);padding-bottom:12px;margin-bottom:18px}
+.folha .cabecalho-doc .endereco{text-align:right;font-size:11.5px;color:var(--texto-fraco);
+  line-height:1.45}
+.folha .cabecalho-doc img{max-width:150px;max-height:52px}
+.folha h1.titulo-doc{text-align:center;font-size:15px;text-transform:uppercase;
+  letter-spacing:.4px;margin:0 0 20px}
+.folha .par{white-space:pre-wrap;margin:0 0 11px}
+.folha .assinatura{margin-top:30px}
+.folha .assinatura .risco{border-top:1px solid #9aa0a4;width:280px;margin:34px 0 4px}
+.folha .assinatura img{max-height:70px;display:block;margin-bottom:-6px}
+.folha .bilingue{display:grid;grid-template-columns:1fr 1fr;gap:26px}
+.tabela-ciber{width:100%;border-collapse:collapse;margin:0 0 10px;font-size:12px}
+.tabela-ciber td{border:1px solid #9AA0A4;padding:4px 6px;vertical-align:top}
+.tabela-ciber td.sit{width:34px;text-align:center;font-weight:700;color:var(--cinza);
+  background:#f5f7f8}
+.tabela-ciber .just{margin-top:3px;font-size:11px;color:var(--texto-fraco)}
+.folha .rodape-doc{margin-top:26px;border-top:1px solid var(--borda);padding-top:8px;
+  font-size:10.5px;color:var(--texto-fraco);text-align:center}
+
+/* ---------------------------------------------------------------- selos */
+/* A etiqueta tem tamanho FISICO, em milimetros, escolhido na propria tela: o
+   navegador converte mm em pixels na impressao, entao o que sai do papel mede o
+   que foi pedido. A folha e flex-wrap para caber quantas couberem por linha -
+   etiqueta pequena rende mais etiqueta por folha. */
+.selos{display:flex;flex-wrap:wrap;gap:5mm;align-items:flex-start}
+.selo-bloco{break-inside:avoid;page-break-inside:avoid}
+.selo{
+  display:flex; align-items:stretch; background:#fff; line-height:1.25;
+  box-sizing:border-box;                       /* a borda entra na medida pedida */
+  width:var(--etiqueta-largura, 50mm);
+  height:var(--etiqueta-altura, 30mm);
+  overflow:hidden;                             /* o ajuste de fonte mede por aqui */
+  font-size:8pt;                               /* so o ponto de partida: o JS acha a certa */
+  /* A MOLDURA E DA ETIQUETA, nao da tabela. Quando era da tabela, bastava ela
+     passar 1 px da caixa para o overflow:hidden comer a borda de baixo - e a
+     etiqueta saia impressa sem o traco inferior. Aqui a moldura pertence ao
+     elemento que TEM a medida em mm, entao nao ha como ser cortada. */
+  border:1px solid #333;
+}
+.selo-dados{width:100%;height:100%;border-collapse:collapse;table-layout:auto}
+.selo-dados td{border:1px solid #333;padding:0.4mm 1mm;vertical-align:middle;
+  overflow-wrap:anywhere}
+/* as bordas da beirada sairiam dobradas com a moldura da etiqueta */
+.selo-dados tr:first-child td{border-top:none}
+.selo-dados tr:last-child td{border-bottom:none}
+.selo-dados td:first-child{border-left:none}
+.selo-dados td:last-child{border-right:none}
+
+/* Quebra de linha, escolhida na barra da tela: uma caixa para cada coluna.
+   Com a quebra ligada o rotulo PRECISA de largura definida: solto, a tabela
+   dava a ele a largura da maior palavra (uns 11 px) e o texto virava uma
+   coluna de letras - a fonte despencava para 3 pt e nem cabia. Medido: 35% da
+   etiqueta mantem a mesma fonte do modo sem quebra. */
+.selo-dados.quebra-rotulo td.r{white-space:normal;width:35%}
+.selo-dados.sem-quebra-valor td:not(.r){white-space:nowrap}
+/* A coluna do rotulo encolhe ate o texto e devolve o resto para o valor - era
+   aqui que sobrava espaco, com os 44% fixos de antes. O rotulo ainda vai um
+   pouco menor que o valor: "Nome do fabricante:" e palavra conhecida e
+   secundaria, enquanto a rastreabilidade e o que a OCD precisa conseguir ler.
+   Medido: com o rotulo em 0,8em a fonte do valor sobe de 8,8 para 9,7 pt numa
+   etiqueta de 50x30 mm. */
+.selo-dados td.r{font-weight:700;white-space:nowrap;width:1%;font-size:0.8em}
+/* Espacamento do selo em EM, nao em px: a fonte e ajustada ao tamanho da
+   etiqueta, entao o respiro tem de crescer junto. Com padding fixo, num selo
+   sem numero de homologacao a fonte ia ao teto, a logo crescia e encostava no
+   quadro - a borda parecia "comida". */
+.selo-anatel{flex:1;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:0.2em;padding:0.4em 0.6em;
+  text-align:center}
+.selo-anatel img{max-width:100%;max-height:45%;object-fit:contain}
+.selo-numero{font-weight:700;color:#000;white-space:nowrap}
+.selo-dados.larga{width:100%}
+@media print{ .selos{gap:4mm} }
+.selo-legenda{font-size:11px;color:var(--texto-fraco);margin-top:4px}
+
+/* ------------------------------------------------------------- produtos */
+.miniatura{width:44px;height:44px;object-fit:cover;border-radius:6px;border:1px solid var(--borda);
+  background:#f0f2f3;display:block}
+.miniatura.vazia{display:flex;align-items:center;justify-content:center;color:#c2c8cb;
+  font-size:18px}
+.tabela-produtos td{vertical-align:middle}
+.galeria{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:10px}
+.galeria .mini{position:relative}
+.galeria .acoes-foto{position:absolute;top:3px;right:3px;display:flex;gap:3px}
+.galeria .acoes-foto form{margin:0}
+.galeria .acoes-foto button{width:22px;height:22px;padding:0;border:none;border-radius:4px;
+  background:rgba(71,75,79,.85);color:#fff;cursor:pointer;line-height:0;
+  display:inline-flex;align-items:center;justify-content:center}
+.galeria .acoes-foto button svg{width:12px;height:12px}
+.galeria .acoes-foto button:hover{background:var(--verde-esc)}
+.galeria .acoes-foto button.perigo:hover{background:var(--vermelho)}
+.galeria .etiqueta-capa{position:absolute;bottom:22px;left:3px}
+.galeria .mini.e-capa img{outline:2px solid var(--verde);outline-offset:1px}
+.galeria .mini small{display:block;font-size:10px;margin-top:2px;line-height:1.25}
+/* situacao + decisao de renovar, na mesma linha */
+/* a coluna cabe o cracha + o botao "decidir" sem quebrar linha */
+.tabela-produtos th:nth-child(4),
+.tabela-produtos td:nth-child(4){min-width:220px}
+.linha-situacao{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.linha-situacao .btn-mini{padding:3px 8px;font-size:11.5px;white-space:nowrap}
+.linha-situacao form{margin:0}
+.motivo-decisao{margin-top:4px;max-width:320px;line-height:1.35}
+.btn-texto{border:none;background:none;padding:0;color:var(--verde-esc);cursor:pointer;
+  font-size:11.5px;text-decoration:underline;font-family:inherit}
+details.decisao{display:inline-block}
+details.decisao summary{list-style:none;cursor:pointer}
+details.decisao summary::-webkit-details-marker{display:none}
+details.decisao .decisao-form{position:absolute;z-index:20;margin-top:6px;width:320px;
+  background:var(--branco);border:1px solid var(--borda);border-radius:var(--raio);
+  padding:12px;box-shadow:0 10px 30px rgba(15,29,46,.14)}
+details.decisao .decisao-form textarea{width:100%;margin-top:4px}
+details.decisao .decisao-form hr{margin:10px 0}
+details.decisao .decisao-form .dica{margin-top:4px}
+.linha-modulo{display:flex;gap:10px;align-items:center;justify-content:space-between;
+  padding:9px 0;border-bottom:1px solid var(--borda)}
+.linha-modulo:last-child{border-bottom:none}
+.lista-chips{display:flex;flex-wrap:wrap;gap:2px}
+.bloco-anatel{background:#f5f8fa;border:1px solid var(--borda);border-radius:var(--raio);
+  padding:12px 14px}
+.bloco-anatel .rot{color:var(--texto-fraco)}
+
+/* ---------------------------------------------------------------- impressao */
+.somente-impressao{display:none}
+@media print{
+  .lateral,.topo,.abas,.cabeca-processo .direita,.barra-acoes,.nao-imprimir,.flashes{display:none !important}
+  .conteudo{margin:0}
+  .interno{padding:0}
+  body{background:#fff;font-size:12px}
+  .cartao,.folha{border:none;box-shadow:none;padding:0;margin:0 0 10px}
+  .somente-impressao{display:block}
+  .quebra{page-break-before:always}
+  .dossie-item{page-break-inside:avoid}
+  a{color:inherit;text-decoration:none}
+}
+
+/* ---------------------------------------------------------------- dossie */
+.dossie-item{margin-bottom:22px}
+.dossie-item h3{border-bottom:1px solid var(--borda);padding-bottom:5px;margin-bottom:10px;
+  display:flex;justify-content:space-between;align-items:baseline}
+.dossie-item h3 small{font-weight:400;color:var(--texto-fraco);font-size:11.5px}
+.dossie-fotos{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.dossie-fotos figure{margin:0}
+.dossie-fotos img{width:100%;border:1px solid var(--borda);border-radius:4px;display:block}
+.dossie-fotos figcaption{font-size:11px;color:var(--texto-fraco);margin-top:4px}
+
+/* ---------------------------------------------------------------- util */
+.linha-flex{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.direita{margin-left:auto}
+.mb0{margin-bottom:0}.mb8{margin-bottom:8px}.mb16{margin-bottom:16px}
+.mt8{margin-top:8px}
+.mt0{margin-top:0}.mt16{margin-top:16px}
+.fraco{color:var(--texto-fraco)}
+.pequeno{font-size:12px}
+.negrito{font-weight:600}
+.centro{text-align:center}
+.nowrap{white-space:nowrap}
+.destaque-verde{color:var(--verde-esc);font-weight:600}
+tr.destaque > td{background:#f3f9ec;box-shadow:inset 3px 0 0 var(--verde)}
+.alerta-critico{color:var(--vermelho);font-weight:600}
+.alerta-atencao{color:#96631a;font-weight:600}
+details.bloco{border:1px solid var(--borda);border-radius:6px;padding:10px 12px;
+  margin-bottom:10px;background:#fbfcfc}
+details.bloco summary{cursor:pointer;font-weight:600;color:var(--cinza);font-size:13px}
+details.bloco[open] summary{margin-bottom:10px}

@@ -1,0 +1,28 @@
+# Segredos e configuração local — cada ambiente tem o seu, nunca commitar.
+# Use .env.example como modelo.
+.env
+
+# Dados de produção: banco, backups e arquivos enviados pelos usuários
+# (fotos, certificados, propostas comerciais). Entram por volume Docker,
+# nunca fazem parte do código-fonte.
+instance/
+
+# Dados do app antigo, já importados para instance/
+dados-app-antigo/
+
+# Python
+__pycache__/
+**/__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+*.egg-info/
+
+# Editor / SO
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

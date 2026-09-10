@@ -1,0 +1,76 @@
+{% extends "captura/_base.html" %}
+{% block titulo %}{{ 'Foto aceita' if analise.aprovada else 'Refazer' }}{% endblock %}
+
+{% block conteudo %}
+<div class="cel-veredito {{ 'ok' if analise.aprovada else 'nao' }}">
+  <span class="marca">{{ '✓' if analise.aprovada else '✕' }}</span>
+  <div>
+    <strong>{{ 'Foto aceita' if analise.aprovada else 'Esta foto não serve' }}</strong>
+    <span>{{ v.nome }}</span>
+  </div>
+</div>
+
+<img class="cel-previa" src="{{ url_for('arquivo', relativo=foto.arquivo) }}"
+     alt="Foto de {{ v.nome }}">
+
+{% set graves = analise.problemas | selectattr('gravidade', 'equalto', 'grave') | list %}
+{% set avisos = analise.problemas | selectattr('gravidade', 'equalto', 'aviso') | list %}
+
+{# no maximo dois: os problemas vem ordenados por causa, e o resto costuma ser
+   consequencia do primeiro (foto tampada tambem sai tremida e lavada) #}
+{% for problema in graves[:2] %}
+<div class="cel-problema">
+  <strong>{{ problema.mensagem }}</strong>
+  <span>{{ problema.comofazer }}</span>
+</div>
+{% endfor %}
+{% if graves|length > 2 %}
+<p class="cel-nota">Corrigindo isso, o resto costuma se resolver junto
+({{ graves|length - 2 }} outro(s) ponto(s) apareceram nesta mesma foto).</p>
+{% endif %}
+
+{% for problema in avisos[:2] %}
+<div class="cel-aviso">
+  <strong>{{ problema.mensagem }}</strong>
+  <span>{{ problema.comofazer }}</span>
+</div>
+{% endfor %}
+
+{% if analise.aprovada and not avisos %}
+<p class="cel-texto">Nada a corrigir: luz, foco e tamanho estão bons.</p>
+{% endif %}
+
+{% if analise.ia and analise.ia.indisponivel %}
+<p class="cel-nota">A conferência por IA não respondeu desta vez — vale o que a
+conferência local viu.</p>
+{% elif analise.ia and analise.ia.resumo %}
+<p class="cel-nota">IA: {{ analise.ia.resumo }}</p>
+{% endif %}
+
+<div class="cel-acoes">
+  {% if analise.aprovada %}
+    {% if proxima %}
+    <a class="cel-botao-linha" href="{{ url_for('captura.vista', token=s.token, vid=proxima.id) }}">
+      Próxima: {{ proxima.nome }}</a>
+    {% else %}
+    <a class="cel-botao-linha" href="{{ url_for('captura.fim', token=s.token) }}">
+      Terminei — ver o resumo</a>
+    {% endif %}
+    <form method="post" action="{{ url_for('captura.refazer', token=s.token, fid=foto.id) }}">
+      <button class="cel-btn-secundario">Apagar e tirar outra</button>
+    </form>
+  {% else %}
+    <form method="post" action="{{ url_for('captura.refazer', token=s.token, fid=foto.id) }}">
+      <button class="cel-botao-linha">Tirar outra foto</button>
+    </form>
+    <details class="cel-manter">
+      <summary>Quero manter esta foto mesmo assim</summary>
+      <p class="cel-texto">A foto já está guardada no processo. Se você tem certeza
+      de que ela serve, siga em frente — mas ela vai aparecer marcada na tela do
+      computador, para conferência antes de fechar o pacote da OCD.</p>
+      <a class="cel-btn-secundario" href="{{ url_for('captura.entrar', token=s.token) }}">
+        Manter e continuar</a>
+    </details>
+  {% endif %}
+</div>
+{% endblock %}

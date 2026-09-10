@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+<meta charset="utf-8">
+{# maximum-scale livre: a pessoa precisa poder dar zoom na foto que acabou de tirar #}
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#474B4F">
+<title>{% block titulo %}Fotos{% endblock %} · {{ p.numero if p else 'ANATEL' }}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/captura.css') }}">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%237AC143'/><text x='16' y='23' font-size='18' font-family='Arial' font-weight='bold' fill='white' text-anchor='middle'>A</text></svg>">
+</head>
+<body class="cel">
+
+<header class="cel-topo">
+  <div>
+    <strong>{{ p.numero if p else 'Captura' }}</strong>
+    <span>{{ p.produto.modelo if p and p.produto else '' }}</span>
+  </div>
+  {% if progresso %}
+  <div class="cel-contagem" title="Vistas obrigatórias com foto">
+    {{ progresso.feitas }}/{{ progresso.total }}</div>
+  {% endif %}
+</header>
+
+{% if progresso %}
+<div class="cel-barra"><i style="width:{{ progresso.porcento }}%"></i></div>
+{% endif %}
+
+<main class="cel-corpo">
+  {% with mensagens = get_flashed_messages(with_categories=true) %}
+    {% for categoria, texto in mensagens %}
+    <div class="cel-recado {{ categoria }}">{{ texto }}</div>
+    {% endfor %}
+  {% endwith %}
+  {% block conteudo %}{% endblock %}
+</main>
+
+{% block rodape %}{% endblock %}
+</body>
+</html>

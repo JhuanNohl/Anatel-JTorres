@@ -1,0 +1,86 @@
+{# Renderiza o documento no formato da folha impressa. Usa: d, p, pt, en #}
+{% set sig = d.signatario or p.signatario %}
+<div class="folha">
+  <div class="cabecalho-doc">
+    <div>
+      {% if empresa_atual.logo_arquivo %}
+        <img src="{{ url_for('arquivo', relativo=empresa_atual.logo_arquivo) }}" alt="">
+      {% else %}
+        <strong style="color:var(--cinza);font-size:16px">{{ empresa_atual.nome_fantasia or empresa_atual.razao_social }}</strong>
+      {% endif %}
+    </div>
+    <div class="endereco">
+      {% for linha in empresa_atual.cabecalho %}{{ linha }}<br>{% endfor %}
+    </div>
+  </div>
+
+  <div style="text-align:right;margin-bottom:16px">Data: {{ d.data_documento|data }}</div>
+
+  <h1 class="titulo-doc">{{ d.titulo }}</h1>
+
+  {% if en %}
+  <div class="bilingue">
+    <div>{% for bloco in pt.split('\n\n') %}{% if bloco.strip() %}<p class="par">{{ bloco.strip() }}</p>{% endif %}{% endfor %}</div>
+    <div>{% for bloco in en.split('\n\n') %}{% if bloco.strip() %}<p class="par">{{ bloco.strip() }}</p>{% endif %}{% endfor %}</div>
+  </div>
+  {% elif '---REQUISITOS---' in pt %}
+    {% set partes = pt.split('---REQUISITOS---') %}
+    {% for bloco in partes[0].split('\n\n') %}{% if bloco.strip() %}<p class="par">{{ bloco.strip() }}</p>{% endif %}{% endfor %}
+    {% for titulo, secoes in blocos_ciber %}
+      {% if titulo %}<p class="par negrito" style="color:var(--cinza)">{{ titulo }}</p>{% endif %}
+      {% for secao, itens in secoes %}
+        {% if secao %}<p class="par negrito" style="color:var(--cinza)">{{ secao }}</p>{% endif %}
+        <table class="tabela-ciber">
+          {% for r in itens %}
+          <tr>
+            <td class="sit">{{ r.situacao }}</td>
+            <td><strong>{{ r.codigo }}</strong> {{ r.texto }}
+              {% if r.situacao == 'NA' %}
+              <div class="just"><strong>Justificativa:</strong>
+                <em>{{ r.justificativa or '—' }}</em></div>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </table>
+      {% endfor %}
+    {% endfor %}
+    {% for bloco in partes[1].split('\n\n') %}{% if bloco.strip() %}<p class="par">{{ bloco.strip() }}</p>{% endif %}{% endfor %}
+  {% else %}
+    {% for bloco in pt.split('\n\n') %}{% if bloco.strip() %}<p class="par">{{ bloco.strip() }}</p>{% endif %}{% endfor %}
+  {% endif %}
+
+  {% if d.tipo == 'similaridade' and p.similares %}
+  <table class="tabela" style="margin-top:14px">
+    <thead><tr><th>Modelo</th><th>Nome comercial</th><th>Diferenças em relação ao modelo base</th></tr></thead>
+    <tbody>
+      {% for s in p.similares %}
+      <tr><td>{{ s.modelo }}</td><td>{{ s.nome_comercial or '-' }}</td><td>{{ s.diferencas or '-' }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+
+  <div class="assinatura">
+    {% if sig and not (d.template and not d.template.bloco_responsavel) %}
+    <div>Nome do responsável: {{ sig.nome }}</div>
+    {% if sig.cargo %}<div>Cargo: {{ sig.cargo }}</div>{% endif %}
+    {% if sig.email %}<div>E-mail: {{ sig.email }}</div>{% endif %}
+    {% if sig.email_alternativo %}<div>E-mail: {{ sig.email_alternativo }}</div>{% endif %}
+    {% if sig.telefone %}<div>Telefone: {{ sig.telefone }}</div>{% endif %}
+    {% endif %}
+
+    <p style="margin-top:18px">{{ d.cidade }}{% if d.cidade %}, {% endif %}{{ d.data_documento|data }}.</p>
+
+    <div style="margin-top:16px">Assinatura:</div>
+    {% if sig and sig.assinatura_arquivo %}
+      <img src="{{ url_for('arquivo', relativo=sig.assinatura_arquivo) }}" alt="">
+    {% endif %}
+    <div class="risco"></div>
+    <div class="negrito">{{ sig.nome if sig else '' }}</div>
+  </div>
+
+  <div class="rodape-doc">
+    {{ p.numero }} · {{ d.titulo }} · v{{ d.versao }} · emitido em {{ d.criado_em|datahora }}
+  </div>
+</div>

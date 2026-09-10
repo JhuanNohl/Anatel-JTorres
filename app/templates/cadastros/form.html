@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block titulo %}{{ cfg.singular }}{% endblock %}
+
+{% block conteudo %}
+<h1>{{ (reg[cfg.colunas[0][0]] if reg else 'Novo') ~ ' · ' ~ cfg.singular }}</h1>
+
+<form method="post">
+<div class="cartao">
+  <div class="grade g2">
+    {% for nome, rotulo, tipo, extra in cfg.campos %}
+    <div class="campo" {% if tipo == 'area' %}style="grid-column:1 / -1"{% endif %}>
+      {% if tipo == 'bool' %}
+        <div class="linha-check" style="margin-top:20px">
+          <input type="checkbox" name="{{ nome }}" id="{{ nome }}" value="1"
+                 {{ 'checked' if (reg and reg[nome]) or (not reg and extra.get('padrao')) }}>
+          <label for="{{ nome }}">{{ rotulo }}</label>
+        </div>
+      {% else %}
+        <label for="{{ nome }}">{{ rotulo }}{{ ' *' if extra.get('obrigatorio') }}</label>
+        {% if tipo == 'area' %}
+          <textarea name="{{ nome }}" id="{{ nome }}" rows="3">{{ reg[nome] if reg else '' }}</textarea>
+        {% elif tipo == 'select' %}
+          <select name="{{ nome }}" id="{{ nome }}">
+            {# a opcao pode ser um texto simples ou um par (valor, rotulo) #}
+            {% for opcao in opcoes(extra) %}
+            {% set valor = opcao[0] if opcao is not string and opcao is sequence else opcao %}
+            {% set rotulo = opcao[1] if opcao is not string and opcao is sequence else opcao %}
+            <option value="{{ valor }}" {{ 'selected' if reg and reg[nome] == valor }}>{{ rotulo or '—' }}</option>
+            {% endfor %}
+          </select>
+        {% elif tipo == 'fk' %}
+          <select name="{{ nome }}" id="{{ nome }}">
+            <option value="">—</option>
+            {% for valor, rotulo_opcao in opcoes(extra) %}
+            <option value="{{ valor }}" {{ 'selected' if reg and reg[nome] == valor }}>{{ rotulo_opcao }}</option>
+            {% endfor %}
+          </select>
+        {% elif tipo == 'cor' %}
+          {% set cor_atual = reg[nome] if reg else '' %}
+          <div class="seletor-cor" data-exemplo="{{ cfg.singular }}">
+            <input type="hidden" name="{{ nome }}" id="{{ nome }}" value="{{ cor_atual }}">
+            <div class="cor-previa">
+              <span class="badge">{{ reg.nome if reg else cfg.singular }}</span>
+              <code>{{ cor_atual }}</code>
+            </div>
+            <div class="cor-paleta">
+              {% for rotulo_cor, hexa in PALETA_CORES %}
+              <button type="button" class="cor-amostra" data-cor="{{ hexa }}"
+                      style="background:{{ hexa }}"
+                      title="{{ rotulo_cor }} · {{ hexa }}"
+                      aria-label="{{ rotulo_cor }}"></button>
+              {% endfor %}
+            </div>
+            <label class="cor-livre">Outra cor
+              <input type="color" value="{{ cor_atual or '#8b9296' }}">
+            </label>
+            <noscript><span class="dica">Sem JavaScript a prévia não atualiza; digite o
+              código da cor no campo abaixo.</span>
+              <input type="text" name="{{ nome }}" value="{{ cor_atual }}"></noscript>
+          </div>
+        {% elif tipo == 'data' %}
+          <input type="date" name="{{ nome }}" id="{{ nome }}"
+                 value="{{ reg[nome].isoformat() if reg and reg[nome] else '' }}">
+        {% elif tipo == 'inteiro' or tipo == 'numero' %}
+          <input type="text" name="{{ nome }}" id="{{ nome }}" value="{{ reg[nome] if reg and reg[nome] is not none else '' }}">
+        {% else %}
+          <input type="text" name="{{ nome }}" id="{{ nome }}" value="{{ reg[nome] if reg else extra.get('padrao','') }}"
+                 {{ 'required' if extra.get('obrigatorio') }}>
+        {% endif %}
+        {% if extra.get('dica') %}<span class="dica">{{ extra.dica }}</span>{% endif %}
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="barra-acoes mt16">
+    <button class="btn btn-primario">Salvar</button>
+    <a class="btn" href="{{ url_for('cadastros.lista', slug=slug) }}">Cancelar</a>
+  </div>
+</div>
+</form>
+
+{% if slug == 'vistas' and reg and reg.personalizada %}
+<div class="cartao">
+  <h3>Texto personalizado</h3>
+  <p class="pequeno fraco">Você editou esta vista, então o sistema não sobrescreve mais o texto
+  dela quando ganha melhorias. Se quiser voltar a receber o texto padrão, use o botão abaixo —
+  o seu texto atual continua valendo até a próxima abertura do sistema.</p>
+  <form method="post" action="{{ url_for('cadastros.restaurar_vista', rid=reg.id) }}"
+        onsubmit="return confirm('Voltar ao texto padrão do sistema nesta vista?')">
+    <button class="btn">Voltar ao texto padrão</button>
+  </form>
+</div>
+{% endif %}
+
+{% if slug == 'vistas' and reg %}
+<div class="cartao">
+  <h3>Desenho de exemplo desta vista</h3>
+  <p class="pequeno fraco">O desenho é escolhido pelo <strong>código</strong>.
+  Códigos sem desenho próprio usam a ilustração genérica.</p>
+  <div style="max-width:320px">
+    <img src="{{ url_for('fotos.exemplo', codigo=reg.codigo) }}" alt="" style="width:100%">
+  </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/cor.js') }}"></script>
+{% endblock %}

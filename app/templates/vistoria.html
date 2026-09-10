@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+{% block titulo %}Vistoria de fotos{% endblock %}
+
+{% block conteudo %}
+<div class="linha-flex mb16">
+  <div>
+    <h1 class="mb0">Vistoria das fotos</h1>
+    <p class="fraco pequeno mb0">Como cada foto é conferida quando chega do celular,
+    antes de virar parte do pacote da OCD.</p>
+  </div>
+</div>
+
+<div class="grade g2">
+  <div>
+    <div class="cartao">
+      <div class="cartao-titulo">
+        <h2>Conferência local</h2>
+        <span class="badge ok">sempre ligada</span>
+      </div>
+      <p class="pequeno fraco">Roda neste servidor, em cima da própria imagem.
+      Não custa nada, não depende de internet e <strong>nenhuma foto sai da rede</strong>.
+      Os limites abaixo foram calibrados nas fotos que as OCDs já aceitaram —
+      abaixo do pior caso real, para não recusar foto boa.</p>
+      <table class="tabela">
+        <thead><tr><th>O que ela pega</th><th>Reprova quando</th></tr></thead>
+        <tbody>
+          <tr><td>Foto escura</td><td class="pequeno">brilho médio abaixo de {{ limiares.brilho }} (de 255)</td></tr>
+          <tr><td>Foto estourada / reflexo</td><td class="pequeno">mais de 18% da imagem no branco puro</td></tr>
+          <tr><td>Foto tremida ou desfocada</td><td class="pequeno">nitidez abaixo de {{ limiares.nitidez }}</td></tr>
+          <tr><td>Imagem lavada</td><td class="pequeno">contraste abaixo de {{ limiares.contraste }}</td></tr>
+          <tr><td>Imagem pequena</td><td class="pequeno">menor lado abaixo de {{ limiares.lado }} px</td></tr>
+          <tr><td>Foto repetida</td><td class="pequeno">mesma imagem já usada em outra vista</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="cartao">
+      <h2>Sessões pelo celular</h2>
+      <form method="post">
+        <div class="campo">
+          <label>Quanto tempo o QR code vale</label>
+          <div class="linha-flex" style="gap:8px">
+            <input type="number" name="horas" min="1" max="72" style="max-width:110px"
+                   value="{{ config.horas_da_sessao }}">
+            <span class="pequeno fraco">horas — depois disso o endereço para de
+            abrir e é preciso gerar outro na aba Fotos do processo.</span>
+          </div>
+        </div>
+
+        <hr>
+        <div class="cartao-titulo">
+          <h2 class="mb0" style="font-size:16px">Verificação por IA</h2>
+          <span class="badge {{ 'ok' if config.ia_ligada else 'off' }}">
+            {{ 'ligada' if config.ia_ligada else 'desligada' }}</span>
+        </div>
+        <p class="pequeno fraco">A conferência local vê a <strong>qualidade</strong> da imagem,
+        mas não sabe o que está na foto. A verificação por IA olha o conteúdo e responde
+        se é mesmo a vista pedida, se a etiqueta está legível e se a régua aparece.</p>
+        <div class="aviso atencao">
+          <span>!</span>
+          <div>Ligar isto faz cada foto <strong>sair da sua rede</strong> para a API da
+          Anthropic, e passa a ter custo por foto. Enquanto estiver desligada, o sistema
+          não fala com ninguém de fora.</div>
+        </div>
+
+        <div class="linha-check">
+          <input type="checkbox" name="ia_ligada" id="ia_ligada" value="1"
+                 {{ 'checked' if config.ia_ligada }}>
+          <label for="ia_ligada">Ligar a verificação por IA</label>
+        </div>
+        <div class="linha-check">
+          <input type="checkbox" name="ia_reprova" id="ia_reprova" value="1"
+                 {{ 'checked' if config.ia_reprova }}>
+          <label for="ia_reprova">A IA pode reprovar a foto (desmarcado: ela só avisa,
+            quem decide é a pessoa)</label>
+        </div>
+
+        <div class="campo">
+          <label>Chave da API</label>
+          <input type="password" name="ia_chave" autocomplete="off"
+                 placeholder="{{ config.chave_mascarada or 'cole aqui a chave sk-ant-…' }}">
+          <span class="dica">Guardada no banco deste servidor. Se preferir não guardar,
+          deixe em branco e defina a variável de ambiente <code>ANTHROPIC_API_KEY</code>
+          antes de iniciar o sistema — ela tem preferência.
+          {% if config.chave_mascarada %}Chave atual: <code>{{ config.chave_mascarada }}</code>.{% endif %}</span>
+        </div>
+        {% if config.ia_chave %}
+        <div class="linha-check">
+          <input type="checkbox" name="apagar_chave" id="apagar_chave" value="1">
+          <label for="apagar_chave">Apagar a chave guardada</label>
+        </div>
+        {% endif %}
+
+        <div class="campo">
+          <label>Modelo</label>
+          <input type="text" name="ia_modelo" value="{{ config.ia_modelo }}">
+          <span class="dica">Padrão: <code>claude-opus-5</code>.</span>
+        </div>
+
+        <button class="btn btn-primario">Salvar</button>
+      </form>
+    </div>
+  </div>
+
+  <div>
+    <div class="cartao">
+      <h2>Como funciona na bancada</h2>
+      <ol class="pequeno" style="line-height:1.7;padding-left:20px">
+        <li>Na aba <strong>Fotos</strong> do processo, clique em
+          <strong>Gerar QR para o celular</strong>.</li>
+        <li>Aponte a câmera do celular para o código e abra o endereço.</li>
+        <li>O celular pede <strong>uma vista por vez</strong>, com o desenho de
+          exemplo e o que a OCD cobra naquela vista.</li>
+        <li>Tirou a foto, ela sobe e é conferida na hora: <strong>serve</strong> e
+          vai para a próxima, ou <strong>não serve</strong> e explica o motivo.</li>
+        <li>Dá para parar no meio. Ao abrir o mesmo endereço de novo, volta na
+          primeira vista que falta — inclusive de outro aparelho.</li>
+      </ol>
+      <p class="pequeno fraco">A câmera abre pelo aplicativo do próprio celular.
+      Um preview ao vivo dentro da página exigiria HTTPS com certificado instalado
+      em cada aparelho, o que atrapalharia justamente quem está chegando agora.</p>
+    </div>
+
+    <div class="cartao">
+      <div class="cartao-titulo">
+        <h2>Últimas sessões</h2>
+        <span class="badge info">{{ sessoes|length }}</span>
+      </div>
+      {% if sessoes %}
+      <div class="rolagem">
+      <table class="tabela">
+        <thead><tr><th>Processo</th><th>Aberta em</th><th class="num">Enviadas</th>
+          <th class="num">Recusadas</th><th>Situação</th></tr></thead>
+        <tbody>
+        {% for s in sessoes %}
+        <tr>
+          <td class="pequeno"><a href="{{ url_for('fotos.lista', pid=s.processo_id) }}">
+            {{ s.processo.numero if s.processo else '—' }}</a></td>
+          <td class="pequeno">{{ s.criado_em|datahora }}</td>
+          <td class="num">{{ s.fotos_enviadas or 0 }}</td>
+          <td class="num">{{ s.fotos_recusadas or 0 }}</td>
+          <td><span class="badge {{ 'ok' if s.valida else 'off' }}">
+            {{ 'aberta' if s.valida else ('encerrada' if s.encerrada else 'expirada') }}</span></td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      </div>
+      {% else %}
+      <div class="vazio pequeno">Nenhuma sessão de celular ainda.</div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

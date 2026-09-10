@@ -1,0 +1,72 @@
+{% extends "captura/_base.html" %}
+{% block titulo %}{{ v.nome }}{% endblock %}
+
+{% block conteudo %}
+<div class="cel-passo">
+  {% if posicao %}Vista {{ posicao }} de {{ pendentes }} que faltam{% else %}Refazendo{% endif %}
+  {% if v.obrigatoria %}<span class="badge erro">obrigatória</span>
+  {% else %}<span class="badge">opcional</span>{% endif %}
+</div>
+
+<h1 class="cel-titulo">{{ v.nome }}</h1>
+
+<div class="cel-desenho">{{ desenho(v.codigo)|safe }}</div>
+
+{% if v.descricao %}<p class="cel-texto">{{ v.descricao }}</p>{% endif %}
+{% if v.dica %}
+<div class="cel-atencao"><strong>Atenção:</strong> {{ v.dica }}</div>
+{% endif %}
+
+{% if fotos %}
+<div class="cel-jafeita">
+  <img src="{{ url_for('arquivo', relativo=fotos[0].arquivo) }}" alt="">
+  <div>
+    <strong>Esta vista já tem foto.</strong>
+    <span>Tirar outra guarda as duas.</span>
+  </div>
+</div>
+{% endif %}
+
+<form method="post" enctype="multipart/form-data" class="cel-camera"
+      action="{{ url_for('captura.enviar', token=s.token, vid=v.id) }}"
+      data-envio>
+  <label class="cel-botao">
+    {# capture=environment abre a camera traseira do proprio celular; funciona
+       em http, sem certificado, que e o caso da rede interna #}
+    <input type="file" name="foto" accept="image/*" capture="environment" hidden
+           onchange="if(this.files.length){this.form.dataset.enviando=1;this.form.submit();}">
+    <span class="ico">📷</span>
+    <span class="rot">Tirar a foto desta vista</span>
+  </label>
+  <label class="cel-galeria">
+    <input type="file" name="foto" accept="image/*" hidden
+           onchange="if(this.files.length){this.form.dataset.enviando=1;this.form.submit();}">
+    escolher da galeria
+  </label>
+  <div class="cel-enviando">Enviando e conferindo a foto…</div>
+</form>
+
+<details class="cel-na">
+  <summary>Esta vista não existe neste produto</summary>
+  <form method="post" action="{{ url_for('captura.nao_aplicavel', token=s.token, vid=v.id) }}">
+    <label>Por quê? (fica registrado no processo)</label>
+    <input type="text" name="motivo" required
+           placeholder="Ex.: esta placa não tem blindagem.">
+    <button class="cel-btn-secundario">Marcar como não aplicável</button>
+  </form>
+</details>
+
+<nav class="cel-nav">
+  <a href="{{ url_for('captura.entrar', token=s.token) }}">Próxima pendente</a>
+  <a href="{{ url_for('captura.fim', token=s.token) }}">Ver o que falta</a>
+</nav>
+{% endblock %}
+
+{% block rodape %}
+<script>
+  // enquanto a foto sobe, o botao vira aviso: sem isso a pessoa toca de novo
+  document.querySelectorAll('[data-envio]').forEach(function (f) {
+    f.addEventListener('submit', function () { f.classList.add('enviando'); });
+  });
+</script>
+{% endblock %}

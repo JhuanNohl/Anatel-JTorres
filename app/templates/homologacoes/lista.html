@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+{% block titulo %}Homologações{% endblock %}
+
+{% block conteudo %}
+<div class="linha-flex mb16">
+  <div>
+    <h1 class="mb0">Base de homologações ANATEL</h1>
+    <p class="fraco pequeno mb0">Um registro por <strong>certificado</strong>, com validade e
+    controle de renovação. Cada certificado costuma cobrir vários modelos — por isso esta
+    lista é menor que a de
+    <a href="{{ url_for('produtos.lista') }}">produtos / modelos</a>.</p>
+  </div>
+  <a class="btn btn-primario direita" href="{{ url_for('homologacoes.form') }}">＋ Nova homologação</a>
+</div>
+
+<div class="grade g4 mb16">
+  {% for chave, rotulo, cor in grupos %}
+  {% if chave != 'outra' or contagens[chave] %}
+  <a class="indicador {{ cor }}" style="text-decoration:none"
+     href="{{ url_for('homologacoes.lista', grupo='' if grupo == chave else chave,
+                      q=q, prazo=prazo) }}">
+    <div class="valor">{{ contagens[chave] }}</div>
+    <div class="rotulo">{{ rotulo }}{% if chave == 'vencendo' %}
+      <span class="fraco">(em {{ dias_de_aviso }} dias)</span>{% endif %}{{ ' ·' if grupo == chave }}</div>
+    {# a mesma verdade contada em modelos, que e como a tela de Produtos conta #}
+    <div class="contra"><strong>{{ resumo[chave].modelos }}</strong>
+      {{ 'modelo coberto' if resumo[chave].modelos == 1 else 'modelos cobertos' }}</div>
+  </a>
+  {% endif %}
+  {% endfor %}
+</div>
+
+<p class="conferencia">
+  <strong>{{ resumo['_total'].certificados }}</strong> certificados cobrindo
+  <strong>{{ resumo['_total'].modelos }}</strong> modelos.
+  Em <a href="{{ url_for('produtos.lista') }}">produtos / modelos</a> isso aparece como
+  {# cada numero abre a mesma fatia do outro lado, para conferir na hora #}
+  <a href="{{ url_for('produtos.lista', situacao='vigentes') }}">{{ modelos_por_grupo['vigentes'] }} vigentes</a>,
+  <a href="{{ url_for('produtos.lista', situacao='vencendo') }}">{{ modelos_por_grupo['vencendo'] }} a vencer</a> e
+  <a href="{{ url_for('produtos.lista', situacao='problema') }}">{{ modelos_por_grupo['problema'] }} sem vigência</a>
+  (suspensas + canceladas), mais
+  <a href="{{ url_for('produtos.lista', situacao='processo') }}">{{ modelos_por_grupo['processo'] }} em certificação</a> e
+  <a href="{{ url_for('produtos.lista', situacao='sem') }}">{{ modelos_por_grupo['sem'] }} sem homologação</a>,
+  que ainda não têm certificado — total de {{ modelos_por_grupo['_total'] }} modelos.</p>
+
+<div class="cartao">
+  <div class="filtro-vivo mb16" data-filtro-vivo>
+    <div class="campo mb0" style="flex:1;min-width:240px">
+      <label for="filtro">Filtrar</label>
+      <div class="filtro-linha">
+        <input type="search" id="filtro" data-filtro-campo autocomplete="off"
+               placeholder="Digite e a lista filtra: modelo, nº, certificado, OCD, ano…">
+        <button type="button" class="btn" data-filtro-fixar
+                title="Fixar este termo e continuar filtrando (ou tecle Enter)">＋ fixar</button>
+        <button type="button" class="btn" data-filtro-limpar
+                title="Limpar o campo e os filtros fixados">limpar</button>
+      </div>
+      <span class="dica">Filtra enquanto você digita, sem recarregar. <strong>Enter</strong>
+        fixa o termo e soma com o próximo — dá para empilhar quantos quiser.</span>
+      <div class="filtro-etiquetas" data-filtro-etiquetas hidden></div>
+    </div>
+  </div>
+
+  <form class="filtros" method="get">
+    <div class="campo" style="flex:1;min-width:220px">
+      <label>Buscar no banco</label>
+      <input type="search" name="q" value="{{ q }}" placeholder="Modelo, número, certificado, aplicação…">
+    </div>
+    <div class="campo">
+      <label>Situação</label>
+      <select name="grupo">
+        <option value="">Todas</option>
+        {% for chave, rotulo, cor in grupos %}
+        <option value="{{ chave }}" {{ 'selected' if grupo == chave }}>{{ rotulo }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="campo">
+      <label>Vencimento em até</label>
+      <select name="prazo">
+        <option value="">Qualquer</option>
+        <option value="0" {{ 'selected' if prazo == '0' }}>já vencidas</option>
+        <option value="90" {{ 'selected' if prazo == '90' }}>90 dias</option>
+        <option value="180" {{ 'selected' if prazo == '180' }}>180 dias</option>
+        <option value="365" {{ 'selected' if prazo == '365' }}>1 ano</option>
+      </select>
+    </div>
+    <button class="btn btn-escuro">Filtrar</button>
+    {% if q or grupo or prazo %}<a class="btn" href="{{ url_for('homologacoes.lista') }}">Limpar</a>{% endif %}
+  </form>
+
+  {% if fichas %}
+  <p class="pequeno fraco" data-filtro-conta>
+    <span data-filtro-contador>{{ fichas|length }}</span> de {{ fichas|length }} certificado(s)
+    {%- if fichas|length != total %} (de {{ total }} no total){% endif %},
+    cobrindo {{ modelos }} modelo(s) — a lista de
+    <a href="{{ url_for('produtos.lista') }}">produtos / modelos</a> conta os modelos, um por linha.</p>
+  <div class="rolagem">
+  <table class="tabela" data-filtro-alvo>
+    <thead>
+      <tr><th>Modelo(s)</th><th>Nº homologação</th><th>Certificado</th><th>Natureza / tipo</th>
+        <th>OCD</th><th class="num">Validade</th><th class="num">Dias</th><th>Situação</th>
+        <th class="acoes"></th></tr>
+    </thead>
+    <tbody>
+      {% for f in fichas %}
+      {% set h = f.h %}
+      <tr data-busca="{{ f.busca }}">
+        <td><a href="{{ url_for('homologacoes.detalhe', hid=h.id) }}" class="negrito">{{ h.lista_modelos or '—' }}</a></td>
+        <td class="num pequeno">{{ h.numero }}</td>
+        <td class="pequeno">{{ h.certificado }}</td>
+        <td class="pequeno">{{ h.natureza }}
+          {%- if h.tipo %}<br><span class="fraco">{{ h.tipo }}</span>{% endif %}
+          {%- if h.ensaios %}<br><span class="fraco ensaios"
+            title="Ensaios da ANATEL neste certificado">{{ h.ensaios_por_extenso }}</span>
+          {%- endif %}</td>
+        <td class="pequeno">{{ h.ocd.nome if h.ocd else '-' }}</td>
+        <td class="num pequeno">{{ h.validade|data }}</td>
+        <td class="num pequeno">
+          {% if h.dias_para_vencer is not none %}
+            <span class="{{ 'alerta-critico' if h.alerta in ['critico','vencida'] else ('alerta-atencao' if h.alerta == 'atencao' else '') }}">
+              {{ h.dias_para_vencer }}</span>
+          {% else %}-{% endif %}
+        </td>
+        <td>
+          <div class="linha-situacao">
+            <span class="badge {{ f.cor }}">{{ h.situacao or f.rotulo }}</span>
+
+            {% if h.nao_vai_renovar %}
+            <span class="badge off" title="{{ h.renovacao_motivo }}">não renovar</span>
+            {% elif f.chave == 'vencendo' %}
+            {# um controle so: dois botoes lado a lado quebravam a coluna #}
+            <details class="decisao">
+              <summary class="btn btn-mini" title="Renovar ou registrar que não vai renovar">
+                decidir ▾</summary>
+              <div class="decisao-form">
+                <div class="pequeno negrito mb8">Homologação {{ h.numero }} —
+                  {% if h.dias_para_vencer is not none and h.dias_para_vencer < 0 %}vencida
+                  {%- else %}vence em {{ h.dias_para_vencer }} dias{% endif %}</div>
+                <form method="post" action="{{ url_for('homologacoes.renovar', hid=h.id) }}"
+                      onsubmit="return confirm('Abrir processo de renovação da homologação {{ h.numero }}?')">
+                  <button class="btn btn-mini btn-primario" style="width:100%">
+                    ⟳ Renovar — abre o processo</button>
+                </form>
+                <hr>
+                <form method="post" action="{{ url_for('homologacoes.nao_renovar', hid=h.id) }}">
+                  <label class="pequeno negrito">Não vamos renovar. Por quê?</label>
+                  <textarea name="motivo" rows="2" required
+                            placeholder="Ex.: inviável comercialmente — produto saiu de linha."></textarea>
+                  <button class="btn btn-mini btn-escuro mt8" style="width:100%">
+                    Registrar “não renovar”</button>
+                  <span class="dica">O motivo fica visível aqui na lista.</span>
+                </form>
+              </div>
+            </details>
+            {% endif %}
+          </div>
+          {% if h.nao_vai_renovar %}
+          <div class="pequeno fraco motivo-decisao">{{ h.renovacao_motivo }}
+            <a href="{{ url_for('homologacoes.detalhe', hid=h.id) }}"
+               title="Para desfazer a decisão, entre na ficha da homologação">ver</a></div>
+          {% endif %}
+        </td>
+        <td class="acoes">
+          <div class="acoes-icones">
+            <a class="btn-ico" title="Editar esta homologação" aria-label="Editar"
+               href="{{ url_for('homologacoes.form', hid=h.id) }}">{{ ICO_EDITAR }}</a>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  <div class="vazio" data-filtro-vazio hidden><span class="ico">▣</span>
+    Nenhum certificado bate com o filtro digitado.
+  </div>
+  {% else %}
+  <div class="vazio"><span class="ico">▣</span>
+    Nenhuma homologação com esse filtro.<br>
+    <a href="{{ url_for('homologacoes.lista') }}">ver todas</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/filtro.js') }}"></script>
+<script src="{{ url_for('static', filename='js/popover.js') }}"></script>
+{% endblock %}

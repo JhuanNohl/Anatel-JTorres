@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% block titulo %}Segurança cibernética · {{ p.numero }}{% endblock %}
+
+{% block conteudo %}
+{% include "processos/_abas.html" %}
+
+{% set na = p.ciber_nao_aplicaveis %}
+{% set sem_justificativa = p.ciber_sem_justificativa %}
+
+<div class="cartao">
+  <div class="cartao-titulo">
+    <h2>Requisitos de segurança cibernética — Ato nº 77/2021</h2>
+    <div class="linha-flex">
+      <span class="badge ok">{{ total - na|length }} C</span>
+      <span class="badge {{ 'warn' if na else 'off' }}">{{ na|length }} NA</span>
+      {% if sem_justificativa %}
+      <span class="badge erro">{{ sem_justificativa|length }} sem justificativa</span>
+      {% endif %}
+    </div>
+  </div>
+
+  <p class="pequeno fraco">Os {{ total }} requisitos já vêm marcados como <strong>C</strong>.
+  Mude para <strong>NA</strong> só o que não se aplica a este equipamento — e nesse caso a
+  justificativa é obrigatória, é o que a OCD cobra.</p>
+
+  <div class="grade g2 mb16">
+    <div class="cartao compacto mb0">
+      <span class="badge ok">C</span>
+      <span class="pequeno">O equipamento apresenta conformidade ao requisito.</span>
+    </div>
+    <div class="cartao compacto mb0">
+      <span class="badge warn">NA</span>
+      <span class="pequeno">O requisito não se aplica ao equipamento, devido as suas
+      características. Justificativa deverá ser apresentada.</span>
+    </div>
+  </div>
+
+  {% if sem_justificativa %}
+  <div class="aviso erro">
+    <span>!</span>
+    <div><strong>{{ sem_justificativa|length }} requisito(s) marcado(s) como NA sem
+      justificativa.</strong> Enquanto isso não for preenchido, a declaração não pode ser
+      emitida:
+      {% for r in sem_justificativa %}<span class="chip">{{ r.codigo }}</span>{% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="aviso info nao-imprimir">
+    <span>i</span>
+    <div>Se o equipamento se enquadrar como <strong>CPE</strong> (Customer Premise Equipment),
+    a tabela do Anexo 1 do LAC-BCOP-1 precisa ser preenchida, assinada e anexada à declaração —
+    envie em <a href="{{ url_for('anexos.lista', pid=p.id) }}">Anexos</a>.</div>
+  </div>
+</div>
+
+<form method="post">
+{% for titulo, secoes in blocos %}
+  {% if titulo %}
+  <div class="cartao compacto" style="background:#f7f9f9">
+    <strong class="pequeno" style="color:var(--cinza)">{{ titulo }}</strong>
+  </div>
+  {% endif %}
+
+  {% for secao, itens in secoes %}
+  <div class="cartao">
+    {% if secao %}<h3>{{ secao }}</h3>{% endif %}
+    <div class="requisitos">
+      {% for r in itens %}
+      <div class="requisito ciber {{ 'na' if r.situacao == 'NA' }}">
+        <div class="req-marca {{ 'ok' if r.situacao == 'C' else 'warn' }}">
+          {{ 'C' if r.situacao == 'C' else '' }}</div>
+        <div class="req-texto">
+          <div class="req-titulo">
+            <strong>{{ r.codigo }}</strong> {{ r.texto }}
+          </div>
+          <div class="ciber-justificativa {{ 'ativa' if r.situacao == 'NA' }}">
+            <input type="text" name="justificativa_{{ r.id }}" value="{{ r.justificativa }}"
+                   placeholder="Justificativa (obrigatória quando NA): por que o requisito não se aplica a este equipamento"
+                   class="{{ 'faltando' if r.falta_justificar }}">
+          </div>
+        </div>
+        <div class="req-acao">
+          <select name="situacao_{{ r.id }}" class="status-select {{ 'ok' if r.situacao == 'C' else 'warn' }}"
+                  onchange="marcar(this)">
+            {% for s in ['C', 'NA'] %}
+            <option value="{{ s }}" {{ 'selected' if r.situacao == s }}>{{ s }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endfor %}
+{% endfor %}
+
+<div class="cartao">
+  <div class="barra-acoes">
+    <button class="btn btn-primario">Salvar formulário</button>
+    <a class="btn" href="{{ url_for('documentos.gerar', pid=p.id, tipo='seguranca_cibernetica') }}">
+      Gerar a declaração</a>
+    <span class="direita"></span>
+  </div>
+</div>
+</form>
+
+<div class="cartao">
+  <h3>Voltar tudo para C</h3>
+  <p class="pequeno fraco">Marca os {{ total }} requisitos como conformidade e limpa as
+  justificativas.</p>
+  <form method="post" action="{{ url_for('processos.ciberseguranca_todos_c', pid=p.id) }}"
+        onsubmit="return confirm('Marcar todos os requisitos como C e limpar as justificativas?')">
+    <button class="btn">Marcar todos como C</button>
+  </form>
+</div>
+
+<script>
+function marcar(sel) {
+  var linha = sel.closest('.requisito');
+  var na = sel.value === 'NA';
+  linha.classList.toggle('na', na);
+  linha.querySelector('.ciber-justificativa').classList.toggle('ativa', na);
+  linha.querySelector('.req-marca').className = 'req-marca ' + (na ? 'warn' : 'ok');
+  linha.querySelector('.req-marca').textContent = na ? '' : 'C';
+  sel.className = 'status-select ' + (na ? 'warn' : 'ok');
+  if (na) linha.querySelector('input').focus();
+}
+</script>
+{% endblock %}

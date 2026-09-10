@@ -1,0 +1,326 @@
+{% extends "base.html" %}
+{% block titulo %}{{ p.numero }}{% endblock %}
+
+{% block conteudo %}
+{% include "processos/_abas.html" %}
+
+<div class="grade g2">
+  <div>
+    <div class="cartao">
+      <div class="cartao-titulo">
+        <h2>Dados do processo</h2>
+        <div class="pequeno fraco">Pasta: <code>instance/arquivos/processos/{{ p.numero|lower }}</code></div>
+      </div>
+      <div class="dados">
+        <div class="item"><div class="rot">Modelo</div><div class="val">{{ p.produto.modelo }}</div></div>
+        <div class="item"><div class="rot">Nome comercial</div><div class="val">{{ p.produto.nome_comercial or '-' }}</div></div>
+        <div class="item"><div class="rot">Tipo</div><div class="val">{{ p.produto.tipo_equipamento or '-' }}</div></div>
+        <div class="item"><div class="rot">Natureza</div><div class="val">{{ p.produto.natureza }}</div></div>
+        <div class="item"><div class="rot">Categoria ANATEL</div><div class="val">{{ p.categoria_anatel or '-' }}</div></div>
+        <div class="item"><div class="rot">Fabricante</div><div class="val">{{ p.produto.fabricante.nome if p.produto.fabricante else '-' }}</div></div>
+        <div class="item"><div class="rot">OCD</div><div class="val">{{ p.ocd.nome if p.ocd else '-' }}</div></div>
+        <div class="item"><div class="rot">Laboratório</div><div class="val">{{ p.laboratorio.nome if p.laboratorio else '-' }}</div></div>
+        <div class="item"><div class="rot">Referência OCD</div><div class="val">{{ p.referencia_ocd or '-' }}</div></div>
+        <div class="item"><div class="rot">Proposta OCD</div><div class="val">{{ p.proposta_ocd or '-' }}</div></div>
+        <div class="item"><div class="rot">Proposta laboratório</div><div class="val">{{ p.proposta_laboratorio or '-' }}</div></div>
+        <div class="item"><div class="rot">Signatário</div><div class="val">{{ p.signatario.nome if p.signatario else '-' }}</div></div>
+        <div class="item"><div class="rot">Responsável</div><div class="val">{{ p.responsavel or '-' }}</div></div>
+        <div class="item"><div class="rot">Previsão</div><div class="val">{{ p.data_previsao|data }}</div></div>
+        <div class="item"><div class="rot">Conclusão</div><div class="val">{{ p.data_conclusao|data }}</div></div>
+        <div class="item"><div class="rot">Nº homologação</div><div class="val">{{ p.numero_homologacao or '-' }}</div></div>
+        <div class="item"><div class="rot">Certificado (CCT)</div><div class="val">{{ p.certificado_numero or '-' }}</div></div>
+        <div class="item"><div class="rot">Validade CCT</div><div class="val">{{ p.certificado_validade|data }}</div></div>
+        <div class="item"><div class="rot">Relatório de ensaio</div><div class="val">{{ p.relatorio_ensaio or '-' }}</div></div>
+        <div class="item"><div class="rot">Custo total</div><div class="val">{{ p.custo_total|moeda if p.custo_total else '-' }}</div></div>
+      </div>
+      {% if p.observacoes %}
+      <hr>
+      <div class="rot pequeno negrito">Observações</div>
+      <div class="pequeno">{{ p.observacoes|nl2br }}</div>
+      {% endif %}
+    </div>
+
+    <div class="cartao" id="checklist">
+      <div class="cartao-titulo">
+        <h2>Checklist de requisitos da OCD</h2>
+        <span class="badge {{ 'ok' if p.progresso_checklist == 100 else 'warn' }}">{{ p.progresso_checklist }}%</span>
+      </div>
+      <div class="progresso mb16"><i style="width:{{ p.progresso_checklist }}%"></i></div>
+      <p class="pequeno fraco">Clique no item para ver a exigência completa como a OCD escreveu.
+      Os itens marcados com <span class="badge ok">automático</span> o sistema confere sozinho —
+      assim que o anexo, o documento ou a foto entra, o item se resolve. Os demais você marca
+      com o mesmo status da planilha da OCD.<br>
+      Só <strong>Declarações, Fotos e Produto e manual</strong> travam o pacote da OCD — é o que
+      de fato vai no envio. As categorias marcadas como
+      <span class="chip">acompanhamento</span> são o controle interno do processo
+      (proposta, amostras, laudo, financeiro) e não bloqueiam nada.</p>
+
+      {% for categoria, itens in checklist.items() %}
+      <h4>{{ categoria }}
+        {% if categoria not in CATEGORIAS_DO_PACOTE %}
+        <span class="chip" title="Acompanhamento do processo — não trava o pacote da OCD">
+          acompanhamento</span>
+        {% endif %}
+      </h4>
+      <div class="requisitos mb16">
+        {% for r in itens %}
+        {% set aval = r.avaliacao %}
+        {% set feito = r.resolvido %}
+        <div class="requisito {{ 'feito' if feito }}">
+          <div class="req-marca {{ r.cor }}">{{ '✓' if feito else '' }}</div>
+
+          <div class="req-texto">
+            {% if r.detalhe %}
+            <details>
+              <summary>
+                <span class="req-titulo">{{ r.descricao }}</span>
+                {% if not r.obrigatorio %}<span class="chip">opcional</span>{% endif %}
+                <span class="req-abrir">exigência da OCD</span>
+              </summary>
+              <div class="req-exigencia">{{ r.detalhe }}</div>
+            </details>
+            {% else %}
+            <div class="req-titulo">{{ r.descricao }}
+              {% if not r.obrigatorio %}<span class="chip">opcional</span>{% endif %}</div>
+            {% endif %}
+
+            {% if aval %}
+            <div class="req-evidencia {{ 'ok' if aval.ok }}">
+              {{ '✓' if aval.ok else '○' }} {{ aval.detalhe }}
+              {% if aval.ok and r.status not in ['Recebido', 'Não aplicável'] %}
+              <span class="chip verde" title="Confirmado pelo próprio sistema">automático</span>
+              {% endif %}
+            </div>
+            {% endif %}
+            {% if r.observacao %}<div class="req-obs">{{ r.observacao }}</div>{% endif %}
+          </div>
+
+          <div class="req-acao">
+            <form method="post" action="{{ url_for('processos.requisito', pid=p.id, rid=r.id) }}">
+              <select name="status" onchange="this.form.submit()"
+                      class="status-select {{ r.cor }}"
+                      title="Status manual — sempre prevalece sobre a verificação automática">
+                {% for s in STATUS_REQUISITO %}
+                <option value="{{ s }}" {{ 'selected' if r.status == s }}>{{ s }}</option>
+                {% endfor %}
+              </select>
+            </form>
+            <form method="post" action="{{ url_for('processos.excluir_requisito', pid=p.id, rid=r.id) }}"
+                  onsubmit="return confirm('Remover este item do checklist?')">
+              <button class="req-excluir" title="Remover este item do checklist"
+                      aria-label="Remover item">{{ ICO_EXCLUIR }}</button>
+            </form>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% endfor %}
+
+      <details class="bloco">
+        <summary>Adicionar item ao checklist</summary>
+        <form method="post" action="{{ url_for('processos.novo_requisito', pid=p.id) }}">
+          <div class="grade g3">
+            <div class="campo">
+              <label>Categoria</label>
+              <input type="text" name="categoria" value="Requisitos da OCD">
+            </div>
+            <div class="campo" style="grid-column:span 2">
+              <label>Descrição</label>
+              <input type="text" name="descricao" placeholder="Ex.: Enviar diagrama de blocos assinado">
+            </div>
+          </div>
+          <div class="campo mb8">
+            <label>Exigência completa (texto da OCD)</label>
+            <textarea name="detalhe" rows="2"></textarea>
+          </div>
+          <div class="linha-check mb8">
+            <input type="checkbox" name="obrigatorio" id="obg" value="1" checked>
+            <label for="obg">Obrigatório (conta no progresso)</label>
+          </div>
+          <button class="btn btn-primario btn-mini">Adicionar</button>
+        </form>
+      </details>
+    </div>
+
+    {% if p.frases_aplicaveis %}
+    <div class="cartao">
+      <div class="cartao-titulo">
+        <h2>Frases obrigatórias deste produto</h2>
+        <span class="badge warn">{{ p.frases_aplicaveis|length }}</span>
+      </div>
+      <p class="pequeno fraco">Definidas pelas características marcadas na ficha do produto.
+      Precisam constar no produto (local visível) ou no manual.</p>
+      {% for chave, titulo, onde, texto in p.frases_aplicaveis %}
+      <div class="mb16">
+        <div class="negrito pequeno">{{ titulo }}</div>
+        <div class="fraco pequeno mb8">{{ onde }}</div>
+        <div style="background:#fbfcfc;border:1px solid var(--borda);border-radius:6px;
+             padding:10px 12px;font-size:13px">“{{ texto }}”</div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+
+  <div>
+    <div class="cartao">
+      <h2>Situação</h2>
+      <form method="post" action="{{ url_for('processos.status', pid=p.id) }}">
+        <div class="campos">
+          <div class="campo">
+            <label>Novo status</label>
+            <select name="status">
+              {% for s in STATUS_LISTA %}
+              <option value="{{ s.nome }}" {{ 'selected' if p.status == s.nome }}>{{ s.nome }}{{ ' — exige justificativa' if s.exige_justificativa }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="campo">
+            <label>Observação / justificativa</label>
+            <textarea name="observacao" rows="3"
+              placeholder="Obrigatório nos status marcados com “exige justificativa”. Ex.: cancelado porque o fabricante descontinuou o modelo."></textarea>
+            <span class="dica">Fica registrada no histórico permanente do processo.</span>
+          </div>
+          <div class="campo">
+            <label>Registrado por</label>
+            <input type="text" name="autor" value="{{ p.responsavel or (p.signatario.nome if p.signatario else '') }}">
+          </div>
+        </div>
+        <button class="btn btn-primario mt16">Registrar mudança</button>
+      </form>
+
+      <hr>
+      <form method="post" action="{{ url_for('processos.observacao', pid=p.id) }}">
+        <div class="campo">
+          <label>Anotação sem mudar o status</label>
+          <textarea name="observacao" rows="2" placeholder="Ex.: OCD pediu nova foto da etiqueta."></textarea>
+        </div>
+        <button class="btn btn-mini mt16">Anotar no histórico</button>
+      </form>
+    </div>
+
+    <div class="cartao">
+      <div class="cartao-titulo">
+        <h2>Progresso do dossiê</h2>
+      </div>
+      <div class="dados mb16">
+        <div class="item">
+          <div class="rot">Fotos por vista</div>
+          <div class="val">{{ vistas_ok }} de {{ vistas_obrigatorias }} obrigatórias</div>
+        </div>
+        <div class="item">
+          <div class="rot">Documentos emitidos</div>
+          <div class="val">{{ p.documentos|length }}</div>
+        </div>
+        <div class="item">
+          <div class="rot">Anexos</div>
+          <div class="val">{{ p.anexos|length }}</div>
+        </div>
+        <div class="item">
+          <div class="rot">Amostras</div>
+          <div class="val">{{ p.amostras|length }}</div>
+        </div>
+      </div>
+      <div class="barra-acoes">
+        {% for tipo, dados in TIPOS_DOCUMENTO.items() if tipo != 'outros' %}
+          {% if p.tem_documento(tipo) %}
+            <span class="badge ok">✓ {{ dados[0] }}</span>
+          {% else %}
+            <a class="btn btn-mini" href="{{ url_for('documentos.gerar', pid=p.id, tipo=tipo) }}">＋ {{ dados[0] }}</a>
+          {% endif %}
+        {% endfor %}
+      </div>
+      <hr>
+      <div class="barra-acoes">
+        <a class="btn btn-primario" href="{{ url_for('pacote.ver', pid=p.id) }}">
+          📦 Pacote para a OCD</a>
+        <span class="pequeno fraco">Gera um único ZIP com fotos, declarações e anexos
+        organizados em pastas.</span>
+      </div>
+    </div>
+
+    {% if p.status == 'Finalizado' and not p.homologacoes %}
+    <div class="cartao">
+      <h2>Registrar homologação na base</h2>
+      <p class="pequeno fraco">Cria o registro na base de homologações com o modelo principal e
+      os similares, para controle de validade e renovação.</p>
+      <form method="post" action="{{ url_for('processos.homologar', pid=p.id) }}">
+        <div class="grade g2">
+          <div class="campo">
+            <label>Nº de homologação</label>
+            <input type="text" name="numero" value="{{ p.numero_homologacao }}" placeholder="00000-00-00000">
+          </div>
+          <div class="campo">
+            <label>Certificado (CCT)</label>
+            <input type="text" name="certificado" value="{{ p.certificado_numero }}">
+          </div>
+          <div class="campo">
+            <label>Validade</label>
+            <input type="date" name="validade"
+                   value="{{ p.certificado_validade.isoformat() if p.certificado_validade else '' }}">
+          </div>
+          <div class="campo">
+            <label>Situação</label>
+            <select name="situacao">
+              {% for s in SITUACOES_HOMOLOGACAO %}<option value="{{ s }}">{{ s }}</option>{% endfor %}
+            </select>
+          </div>
+        </div>
+        <button class="btn btn-primario mt16">Registrar homologação</button>
+      </form>
+    </div>
+    {% elif p.homologacoes %}
+    <div class="cartao">
+      <h2>Homologação gerada</h2>
+      {% for h in p.homologacoes %}
+      <div class="linha-flex mb8">
+        <a href="{{ url_for('homologacoes.detalhe', hid=h.id) }}" class="negrito">{{ h.numero }}</a>
+        <span class="badge neutro">{{ h.certificado }}</span>
+        <span class="badge {{ 'erro' if h.alerta in ['critico','vencida'] else 'ok' }}">
+          validade {{ h.validade|data }}</span>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="cartao">
+      <h2>Histórico</h2>
+      {% if p.historico %}
+      <table class="tabela">
+        <tbody>
+        {% for h in p.historico %}
+        <tr>
+          <td class="num pequeno fraco nowrap">{{ h.criado_em|datahora }}</td>
+          <td>
+            {% if h.de_status != h.para_status %}
+              <span class="badge" style="{{ STATUS_ESTILOS.get(h.de_status, '') }}">{{ h.de_status or 'novo' }}</span>
+              →
+              <span class="badge" style="{{ STATUS_ESTILOS.get(h.para_status, '') }}">{{ h.para_status }}</span>
+            {% else %}
+              <span class="badge neutro">anotação</span>
+            {% endif %}
+            {% if h.observacao %}<div class="pequeno">{{ h.observacao|nl2br }}</div>{% endif %}
+            {% if h.autor %}<small class="fraco">por {{ h.autor }}</small>{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="vazio">Sem registros.</div>
+      {% endif %}
+    </div>
+
+    <div class="cartao">
+      <h3>Zona de risco</h3>
+      <p class="pequeno fraco">Excluir o processo remove documentos, fotos e anexos do banco.
+      Os arquivos permanecem na pasta do processo em disco. Prefira o status
+      <strong>Cancelado</strong> para manter o histórico.</p>
+      <form method="post" action="{{ url_for('processos.excluir', pid=p.id) }}"
+            onsubmit="return confirm('Excluir definitivamente o processo {{ p.numero }} do banco?')">
+        <button class="btn btn-perigo">{{ ICO_EXCLUIR }} Excluir processo</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

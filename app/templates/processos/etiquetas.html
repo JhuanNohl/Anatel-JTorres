@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+<meta charset="utf-8">
+<title>{{ 'Selos ANATEL' if modo == 'selo' else 'Etiquetas' }} · {{ p.numero }} · {{ p.produto.modelo }}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+<style>
+  body{background:#fff}
+  .pagina{max-width:19cm;margin:0 auto;padding:18px}
+  /* o tamanho escolhido na tela vira medida real da etiqueta */
+  .selos{--etiqueta-largura:{{ largura }}mm; --etiqueta-altura:{{ altura }}mm}
+  @media print{
+    .pagina{padding:0; max-width:none}
+    @page{margin:8mm}
+  }
+</style>
+</head>
+<body>
+<div class="pagina">
+  <div class="barra-acoes nao-imprimir mb16">
+    <button class="btn btn-primario" onclick="window.print()">Imprimir</button>
+    <a class="btn" href="{{ url_for('processos.amostras', pid=p.id) }}">Voltar</a>
+    {% if modo == 'selo' %}
+    <a class="btn" href="{{ url_for('processos.etiquetas', pid=p.id) }}">Ver etiquetas do laboratório</a>
+    {% else %}
+    <a class="btn" href="{{ url_for('processos.selos', pid=p.id) }}">Ver selos ANATEL</a>
+    {% endif %}
+  </div>
+
+  <form class="filtros nao-imprimir mb16" method="get" data-barra-etiqueta
+        data-alvo="{{ 'selo' if modo == 'selo' else 'etiqueta' }}"
+        data-gravar-em="{{ url_for('processos.etiqueta_medida', pid=p.id) }}">
+    <div class="campo">
+      <label for="largura">Largura {{ 'do selo' if modo == 'selo' else 'da etiqueta' }}</label>
+      <div class="linha-flex" style="gap:6px">
+        <input type="number" id="largura" name="largura" value="{{ largura }}"
+               min="{{ p.ETIQUETA_MIN[0] }}" max="{{ p.ETIQUETA_MAX[0] }}" style="width:80px">
+        <span class="pequeno fraco">mm</span>
+      </div>
+    </div>
+    <div class="campo">
+      <label for="altura">Altura</label>
+      <div class="linha-flex" style="gap:6px">
+        <input type="number" id="altura" name="altura" value="{{ altura }}"
+               min="{{ p.ETIQUETA_MIN[1] }}" max="{{ p.ETIQUETA_MAX[1] }}" style="width:80px">
+        <span class="pequeno fraco">mm</span>
+      </div>
+    </div>
+    {% if modo == 'selo' %}
+    <div class="campo">
+      <label for="copias">Quantas cópias</label>
+      <input type="number" id="copias" name="copias" value="{{ copias }}" min="1" max="60"
+             style="width:90px">
+    </div>
+    {% else %}
+    <div class="campo">
+      <label>Quebrar linha</label>
+      <div class="linha-check" style="margin:0">
+        <input type="checkbox" name="quebra_rotulo" id="quebra_rotulo" value="1"
+               {{ 'checked' if quebra_rotulo }}>
+        <label for="quebra_rotulo">na coluna 1 (rótulo)</label>
+      </div>
+      <div class="linha-check" style="margin:0">
+        <input type="checkbox" name="quebra_valor" id="quebra_valor" value="1"
+               {{ 'checked' if quebra_valor }}>
+        <label for="quebra_valor">na coluna 2 (valor)</label>
+      </div>
+    </div>
+    {% endif %}
+    <input type="hidden" name="aplicar" value="1">
+    <button class="btn btn-escuro" data-so-sem-js>Aplicar tamanho</button>
+    <span class="pequeno fraco" style="align-self:center">
+      {{ 'O selo' if modo == 'selo' else 'A etiqueta' }} sai com
+      <strong data-medida-atual>{{ largura }} × {{ altura }} mm</strong> no papel.
+      O texto se ajusta sozinho — fonte de <strong data-fonte-usada>…</strong> pt.
+      Muda enquanto você digita e fica salvo neste processo
+      {%- if modo == 'selo' %}; a etiqueta do laboratório tem tamanho próprio
+      {%- else %}; o selo ANATEL tem tamanho próprio{% endif %}.
+      <span class="badge ok" data-gravado hidden>salvo</span></span>
+  </form>
+
+  <div class="aviso atencao nao-imprimir" data-aviso-fonte hidden>
+    <span>!</span>
+    <div>Neste tamanho o texto precisa encolher para
+      <strong data-fonte-pequena>…</strong> pt para caber — na impressão isso
+      fica difícil de ler. Aumente a etiqueta, ou encurte a rastreabilidade.</div>
+  </div>
+
+  {% if modo == 'selo' %}
+  <h2 class="mb8">Selo ANATEL — {{ p.numero }}</h2>
+  <p class="pequeno fraco mb16">
+    Modelo {{ p.produto.modelo }} · homologação
+    <strong>{{ p.numero_homologacao or '— ainda sem número —' }}</strong>.
+    O selo é do <strong>modelo homologado</strong>, não de cada amostra: é o mesmo número
+    para todo o processo. Abaixo saem {{ copias }} cópias iguais para recortar.
+  </p>
+  {% else %}
+  <h2 class="mb8">Etiquetas de identificação — {{ p.numero }}</h2>
+  <p class="pequeno fraco mb16">
+    Modelo {{ p.produto.modelo }}
+    {% if p.proposta_laboratorio %} · proposta do laboratório {{ p.proposta_laboratorio }}{% endif %}
+    <br>Recorte e cole em cada amostra enviada ao laboratório. Esta etiqueta
+    <strong>não leva número de homologação</strong> — ele só existe no fim do processo.
+  </p>
+  {% endif %}
+
+  {% if modo == 'selo' and not empresa_atual.selo_anatel_arquivo %}
+  <div class="aviso info nao-imprimir">
+    <span>i</span>
+    <div>A imagem do <strong>selo ANATEL</strong> ainda não foi enviada, então a folha sai só com
+      o número. <a href="{{ url_for('main.empresa') }}">Enviar o selo</a>.</div>
+  </div>
+  {% endif %}
+
+  {% if modo == 'selo' and not p.numero_homologacao %}
+  <div class="aviso atencao nao-imprimir">
+    <span>!</span>
+    <div>O processo ainda não tem <strong>número de homologação</strong>.
+      <a href="{{ url_for('processos.editar', pid=p.id) }}">Preencha no cadastro do processo</a>
+      para o selo sair completo. Para enviar ao laboratório use a
+      <a href="{{ url_for('processos.etiquetas', pid=p.id) }}">folha de etiquetas</a>, que não
+      depende do número.</div>
+  </div>
+  {% endif %}
+
+  {% if modo != 'selo' and divergentes %}
+  <div class="aviso atencao nao-imprimir">
+    <span>!</span>
+    <div>A rastreabilidade de {{ divergentes|length }} etiqueta(s) não é idêntica à da
+      <strong>Declaração de Rastreabilidade</strong>
+      ({{ p.rastreabilidade_declarada|join(', ') }}). A OCD exige que sejam iguais —
+      <a href="{{ url_for('processos.rastreabilidade', pid=p.id) }}">conferir a declaração</a>
+      ou corrigir a amostra.</div>
+  </div>
+  {% endif %}
+
+  {% if modo == 'selo' %}
+  <div class="selos selos-anatel">
+    {% for _ in range(copias) %}
+    <div class="selo-bloco">
+      <div class="selo selo-so-anatel" data-etiqueta>
+        <div class="selo-anatel">
+          {% if empresa_atual.selo_anatel_arquivo %}
+            <img src="{{ url_for('arquivo', relativo=empresa_atual.selo_anatel_arquivo) }}"
+                 alt="Selo ANATEL">
+          {% endif %}
+          <div class="selo-numero">{{ p.numero_homologacao or '—' }}</div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% elif p.amostras %}
+  <div class="selos">
+    {% for a in p.amostras %}
+    <div class="selo-bloco">
+      <div class="selo" data-etiqueta>
+        <table class="selo-dados larga {{ 'quebra-rotulo' if quebra_rotulo }}
+                      {{ 'sem-quebra-valor' if not quebra_valor }}">
+          <tr><td class="r">Nome do fabricante:</td>
+              <td>{{ p.produto.fabricante.razao_social or p.produto.fabricante.nome
+                     if p.produto.fabricante else empresa_atual.razao_social }}</td></tr>
+          <tr><td class="r">Modelo do produto:</td><td>{{ p.produto.modelo }}</td></tr>
+          <tr><td class="r">País de origem:</td>
+              <td>{{ p.produto.fabricante.pais if p.produto.fabricante else '' }}</td></tr>
+          <tr><td class="r">Rastreabilidade:</td>
+              <td>{{ a.rastreabilidade_etiqueta }}</td></tr>
+        </table>
+      </div>
+      {% if a.identificacao %}
+      <div class="selo-legenda nao-imprimir">{{ a.identificacao }}
+        {% if a.rastreabilidade_confere is false %}
+        <span class="badge erro">rastreabilidade diferente da declaração</span>
+        {% endif %}
+      </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+
+  {% else %}
+  <div class="vazio">Nenhuma amostra cadastrada — sem amostra não há etiqueta.
+    <a href="{{ url_for('processos.amostras', pid=p.id) }}">Cadastrar</a></div>
+  {% endif %}
+</div>
+<script src="{{ url_for('static', filename='js/etiqueta.js') }}"></script>
+</body>
+</html>

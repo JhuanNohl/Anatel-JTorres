@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+{% block titulo %}Amostras · {{ p.numero }}{% endblock %}
+
+{% block conteudo %}
+{% include "processos/_abas.html" %}
+
+<div class="grade g2">
+  <div class="cartao">
+    <div class="cartao-titulo">
+      <h2>Amostras enviadas ao laboratório</h2>
+      <div class="direita">
+        {% if p.amostras %}
+        <a class="btn btn-primario btn-mini" target="_blank"
+           href="{{ url_for('processos.etiquetas', pid=p.id) }}">Imprimir etiquetas</a>
+        {% endif %}
+        <a class="btn btn-mini" target="_blank"
+           href="{{ url_for('processos.selos', pid=p.id) }}"
+           title="{{ 'Homologação ' ~ p.numero_homologacao if p.numero_homologacao
+                     else 'Falta informar o nº de homologação' }}">Imprimir selo ANATEL</a>
+      </div>
+    </div>
+    <p class="pequeno fraco">O padrão é <strong>2 amostras por processo</strong>:
+    01 comercial + 01 radiada. <strong>Cada amostra é uma etiqueta separada</strong> — se as
+    duas amostras têm rastreabilidades diferentes, cadastre uma amostra para cada uma.
+    O <strong>selo ANATEL</strong> é outra coisa: ele é do modelo homologado, um número só para
+    todo o processo, e não sai por amostra.</p>
+
+    {% if faltando %}
+    <div class="aviso atencao">
+      <span>!</span>
+      <div>Falta cadastrar: <strong>{{ faltando|join(' e ') }}</strong>.
+        <form method="post" action="{{ url_for('processos.amostras_padrao', pid=p.id) }}"
+              style="display:inline">
+          <button class="btn btn-mini">Cadastrar agora</button>
+        </form>
+        <span class="pequeno">Depois é só ajustar a rastreabilidade de cada uma.</span>
+      </div>
+    </div>
+    {% endif %}
+
+    {% if p.amostras %}
+    <div class="rolagem">
+    <table class="tabela">
+      <thead><tr><th>Identificação</th><th>Rastreabilidade</th><th>Nº série</th><th></th></tr></thead>
+      <tbody>
+      {% for a in p.amostras %}
+      <tr class="{{ 'destaque' if editando and editando.id == a.id }}">
+        <td class="negrito">{{ a.identificacao }}</td>
+        <td class="pequeno">
+          {{ a.rastreabilidade or '-' }}
+          {% if a.rastreabilidade_confere is false %}
+          <br><span class="badge erro" title="A OCD exige que sejam idênticas">
+            diferente da declaração</span>
+          {% endif %}
+        </td>
+        <td class="pequeno">{{ a.numero_serie or '-' }}</td>
+        <td class="acoes">
+          <div class="acoes-icones">
+            <a class="btn-ico" title="Editar esta amostra" aria-label="Editar"
+               href="{{ url_for('processos.amostras', pid=p.id, editar=a.id) }}#form-amostra">
+              {{ ICO_EDITAR }}</a>
+            <form method="post" action="{{ url_for('processos.excluir_amostra', pid=p.id, aid=a.id) }}"
+                  onsubmit="return confirm('Remover a amostra “{{ a.identificacao }}”?')">
+              <button class="btn-ico perigo" title="Remover esta amostra" aria-label="Remover">
+                {{ ICO_EXCLUIR }}</button>
+            </form>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    </div>
+    {% else %}
+    <div class="vazio"><span class="ico">▤</span>Nenhuma amostra cadastrada.</div>
+    {% endif %}
+  </div>
+
+  <div>
+    <div class="cartao" id="selo-anatel">
+      <div class="cartao-titulo">
+        <h2>Selo ANATEL</h2>
+        {% if p.numero_homologacao %}
+        <a class="btn btn-mini" target="_blank"
+           href="{{ url_for('processos.selos', pid=p.id) }}">Imprimir</a>
+        {% else %}
+        <span class="badge warn">falta o número</span>
+        {% endif %}
+      </div>
+      <p class="pequeno fraco">É o número da homologação do modelo — um só para todo o
+      processo, não por amostra. Só existe depois que a ANATEL homologa, então até lá o selo
+      sai em branco. O laboratório recebe a <strong>etiqueta</strong>, que não depende dele.</p>
+      <form method="post" action="{{ url_for('processos.numero_homologacao', pid=p.id) }}">
+        <div class="campo">
+          <label>Nº de homologação</label>
+          <input type="text" name="numero_homologacao" value="{{ p.numero_homologacao or '' }}"
+                 placeholder="00000-00-00000">
+          <span class="dica">O mesmo campo existe em “Editar dados”; salvar aqui é a mesma
+            coisa.</span>
+        </div>
+        <button class="btn btn-primario mt16">
+          {{ 'Salvar e gerar o selo' if not p.numero_homologacao else 'Salvar' }}</button>
+      </form>
+    </div>
+
+    <div class="cartao" id="form-amostra">
+      <div class="cartao-titulo">
+        <h2>{{ 'Editar amostra' if editando else 'Cadastrar amostra' }}</h2>
+        {% if editando %}
+        <a class="btn btn-mini" href="{{ url_for('processos.amostras', pid=p.id) }}">Cancelar</a>
+        {% endif %}
+      </div>
+      <form method="post" action="{{ url_for('processos.editar_amostra', pid=p.id, aid=editando.id)
+                                      if editando else url_for('processos.amostras', pid=p.id) }}">
+        <div class="campos">
+          <div class="campo">
+            <label>Identificação</label>
+            <input type="text" name="identificacao" list="sugestoes"
+                   value="{{ editando.identificacao if editando else 'Amostra comercial' }}">
+            <datalist id="sugestoes">
+              <option value="Amostra comercial">
+              <option value="Amostra radiada">
+              <option value="DTM with RF Line">
+              <option value="DTM without RF Line">
+              <option value="DTM with BT Test">
+              <option value="DTM WiFi Test">
+            </datalist>
+            <span class="dica">Ex.: amostra comercial, amostra radiada, firmware de teste.</span>
+          </div>
+          <div class="campo">
+            <label>Rastreabilidade (o que vai na etiqueta)</label>
+            <input type="text" name="rastreabilidade"
+                   value="{{ editando.rastreabilidade if editando else
+                             (p.rast_mac_valor or p.rast_lote_valor or p.rast_serie_valor) }}"
+                   placeholder="Ex.: 30005170826120001">
+            <span class="dica">Um valor por amostra. Duas rastreabilidades = duas amostras,
+              porque cada etiqueta leva a sua.</span>
+          </div>
+          <div class="campo">
+            <label>Número de série</label>
+            <input type="text" name="numero_serie"
+                   value="{{ editando.numero_serie if editando else '' }}">
+          </div>
+          {% if editando and editando.numero_homologacao %}
+          <div class="campo">
+            <label>Nº de homologação registrado nesta amostra</label>
+            <input type="text" name="numero_homologacao" value="{{ editando.numero_homologacao }}">
+            <span class="dica">Não é usado na etiqueta nem no selo — o selo usa o número do
+              processo. Pode apagar.</span>
+          </div>
+          {% endif %}
+          <div class="campo">
+            <label>Observações</label>
+            <textarea name="observacoes" rows="2">{{ editando.observacoes if editando else '' }}</textarea>
+          </div>
+        </div>
+        <button class="btn btn-primario mt16">
+          {{ 'Salvar alterações' if editando else 'Cadastrar amostra' }}</button>
+      </form>
+    </div>
+
+    <div class="cartao">
+      <h3>Antes de enviar ao laboratório</h3>
+      <ul class="pequeno" style="padding-left:18px;margin:0">
+        <li>Cole na amostra o número da proposta do laboratório:
+          <strong>{{ p.proposta_laboratorio or '— preencher no cadastro do processo —' }}</strong></li>
+        <li>Uma etiqueta por amostra, com: fabricante, modelo, país de origem e rastreabilidade.</li>
+        <li>A rastreabilidade da etiqueta e a da Declaração de Rastreabilidade
+        {% if p.rastreabilidade_declarada %}(<strong>{{ p.rastreabilidade_declarada|join(', ') }}</strong>){% endif %}
+        devem ser idênticas.</li>
+        <li>O selo ANATEL não vai para o laboratório: ele é do produto comercial, depois da
+        homologação sair.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}

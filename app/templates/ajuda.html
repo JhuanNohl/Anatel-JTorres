@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+{% block titulo %}Como funciona{% endblock %}
+
+{% block conteudo %}
+<h1>Como funciona</h1>
+
+<div class="grade g2">
+  <div>
+    <div class="cartao">
+      <h2>O fluxo de uma certificação nova</h2>
+      <ol class="pequeno" style="padding-left:20px">
+        <li><strong>Novo processo</strong> — escolha o modelo (ou cadastre na hora), a OCD e o
+        laboratório. O número do processo e o checklist são criados automaticamente.</li>
+        <li><strong>Rastreabilidade</strong> — marque quais dados identificam a amostra
+        (série, lote, data de fabricação, MAC, outros) e gere a
+        <strong>Declaração de Rastreabilidade</strong>. É sempre o primeiro documento.</li>
+        <li><strong>Amostras e selos</strong> — cadastre as amostras (01 comercial + 01 radiada)
+        e imprima a folha de selos para colar em cada uma.</li>
+        <li><strong>Anexos</strong> — guarde a lista de requisitos que a OCD enviou, as propostas
+        comerciais da OCD e do laboratório, o datasheet e o manual.</li>
+        <li><strong>Documentos</strong> — gere a Declaração dos Direitos e Garantias do Consumidor
+        e, quando aplicável, a de Similaridade e a de Segurança Cibernética.</li>
+        <li><strong>Fotos</strong> — siga o roteiro de vistas. Cada vista tem um desenho de
+        exemplo mostrando de onde fotografar. No fim, gere o dossiê para imprimir/PDF.</li>
+        <li><strong>Status</strong> — mantenha <em>Em andamento</em> e registre observações. Ao
+        finalizar ou cancelar, a justificativa é obrigatória e fica no histórico.</li>
+        <li><strong>Encerramento</strong> — anexe notas fiscais, boletos, relatório de ensaio e o
+        certificado; depois registre a homologação na base para o controle de validade.</li>
+      </ol>
+    </div>
+
+    <div class="cartao" id="frases">
+      <h2>Frases obrigatórias no produto ou no manual</h2>
+      <p class="pequeno fraco">Marque as características na ficha do produto e o sistema mostra,
+      em cada processo, quais destas frases precisam constar.</p>
+      {% for chave, titulo, onde, texto in FRASES_OBRIGATORIAS %}
+      <div class="mb16">
+        <div class="negrito pequeno">{{ titulo }}</div>
+        <div class="fraco pequeno mb8">{{ onde }}</div>
+        <div style="background:#fbfcfc;border:1px solid var(--borda);border-radius:6px;
+             padding:10px 12px;font-size:13px">“{{ texto }}”</div>
+      </div>
+      {% endfor %}
+      <div class="aviso info">
+        <span>i</span>
+        <div><strong>Equipamento de Classe I:</strong> {{ DEFINICAO_CLASSE_I }}</div>
+      </div>
+    </div>
+
+    <div class="cartao">
+      <h2>Identificação e Selo Anatel no produto</h2>
+      <p class="pequeno">A identificação precisa conter, obrigatoriamente:</p>
+      <ul class="pequeno" style="padding-left:20px">
+        <li><strong>Modelo</strong> — não pode ser o nome comercial</li>
+        <li><strong>Rastreabilidade</strong></li>
+        <li><strong>País de origem</strong></li>
+        <li><strong>Marca do fabricante</strong> ou fabricante</li>
+        <li><strong>Selo Anatel</strong> — verificar as opções do <em>Ato nº 4088</em></li>
+      </ul>
+      <div class="aviso erro">
+        <span>!</span>
+        <div>Se constar no módulo marcação de órgãos internacionais (<strong>FCC, CE</strong>),
+        é <strong>mandatório</strong> constar também a marcação do Selo Anatel.</div>
+      </div>
+      <p class="pequeno fraco mb0">O mesmo conjunto de dados (modelo, fabricante, país de origem
+      e rastreabilidade) precisa estar <strong>impresso</strong> — nunca manuscrito — na amostra
+      ou na embalagem enviada ao laboratório. É o que a folha de selos do sistema gera.</p>
+    </div>
+
+    <div class="cartao">
+      <h2>Quando cada declaração é usada</h2>
+      <table class="tabela">
+        <tbody>
+        {% for tipo, dados in TIPOS_DOCUMENTO.items() %}
+        <tr>
+          <td class="negrito" style="width:38%">{{ dados[0] }}<br>
+            <small class="fraco">endereçada a: {{ dados[1] }}</small></td>
+          <td class="pequeno">{{ dados[2] }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="cartao">
+      <h2>Renovação / manutenção</h2>
+      <p class="pequeno">Ao criar um processo do tipo <em>Renovação / Manutenção</em>, o checklist
+      já vem com o que a OCD exige:</p>
+      <ul class="pequeno" style="padding-left:20px">
+        <li>Declaração de Manutenção (com a referência do certificado, ex.: OCP 69124)</li>
+        <li>Declaração de rastreabilidade</li>
+        <li>ISO 9001 válido do fabricante, com tradução juramentada</li>
+        <li><strong>Novas</strong> fotos internas dos 2 lados das placas, com e sem blindagem,
+        com régua ao lado, mostrando marca do fabricante, país de origem, modelo,
+        rastreabilidade e número de homologação</li>
+      </ul>
+    </div>
+  </div>
+
+  <div>
+    <div class="cartao">
+      <h2>Fotografar pelo celular, na bancada</h2>
+      <p class="pequeno fraco">É a forma mais rápida de fazer o roteiro sem errar —
+      e a que menos depende de já conhecer o processo.</p>
+      <ol class="pequeno" style="line-height:1.8;padding-left:20px">
+        <li>Abra o processo, aba <strong>Fotos</strong>, e clique em
+          <strong>Gerar QR para o celular</strong>.</li>
+        <li>Aponte a câmera do celular para o código.</li>
+        <li>O celular pede <strong>uma vista por vez</strong>, com o desenho de
+          exemplo e o que a OCD cobra ali.</li>
+        <li>A foto sobe e é conferida na hora. Se estiver escura, tremida,
+          estourada, pequena demais ou for a repetição de outra vista, a tela diz
+          o motivo e o que fazer — e você refaz sem sair do lugar.</li>
+        <li>Deu certo, ela já oferece a próxima vista. Pode parar no meio: ao
+          abrir o mesmo endereço de novo, você volta na primeira que falta.</li>
+      </ol>
+      <p class="pequeno fraco">A conferência roda no próprio servidor: não depende
+      de internet e nenhuma foto sai da rede. Os limites usados estão em
+      <a href="{{ url_for('main.vistoria_config') }}">Vistoria de fotos</a>, junto
+      com a verificação por IA — que é opcional e vem desligada.</p>
+    </div>
+
+    <div class="cartao">
+      <h2>Roteiro de fotos ({{ vistas|selectattr('obrigatoria')|list|length }} obrigatórias)</h2>
+      <p class="pequeno fraco">Essa é a parte que mais gera retrabalho. O roteiro fica salvo aqui
+      para não depender de memória — e pode ser editado em
+      <a href="{{ url_for('cadastros.lista', slug='vistas') }}">Vistas de fotos</a>.</p>
+      <table class="tabela">
+        <tbody>
+        {% for v in vistas %}
+        <tr>
+          <td style="width:34%">
+            <span class="negrito">{{ v.nome }}</span><br>
+            <small class="fraco">{{ v.grupo }} ·
+              {{ 'obrigatória' if v.obrigatoria else 'opcional' }}</small>
+          </td>
+          <td class="pequeno">{{ v.descricao }}
+            {% if v.dica %}<br><em class="fraco">{{ v.dica }}</em>{% endif %}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="cartao">
+      <h3>Onde ficam os arquivos</h3>
+      <p class="pequeno">Tudo dentro da pasta do sistema, em
+      <code>instance/</code>:</p>
+      <ul class="pequeno" style="padding-left:20px">
+        <li><code>instance/anatel.db</code> — o banco de dados (SQLite). Copie este arquivo para
+        fazer backup da base.</li>
+        <li><code>instance/arquivos/processos/&lt;processo&gt;/documentos</code> — os .docx gerados</li>
+        <li><code>instance/arquivos/processos/&lt;processo&gt;/fotos</code></li>
+        <li><code>instance/arquivos/processos/&lt;processo&gt;/anexos</code></li>
+        <li><code>instance/arquivos/identidade</code> — logotipo e imagem de assinatura</li>
+      </ul>
+      <p class="pequeno fraco mb0">Como a pasta está no OneDrive, o backup acontece junto com a
+      sincronização. Feche o sistema antes de copiar o banco.</p>
+    </div>
+
+    <div class="cartao">
+      <h3>Cadastros carregados</h3>
+      <div class="dados">
+        <div class="item"><div class="rot">OCDs</div><div class="val">{{ ocds }}</div></div>
+        <div class="item"><div class="rot">Laboratórios</div><div class="val">{{ labs }}</div></div>
+      </div>
+      <p class="pequeno fraco mt16 mb0">Os dados iniciais vieram da sua planilha. Complete o que
+      estiver incompleto (ICC, por exemplo) em Base de dados.</p>
+    </div>
+  </div>
+</div>
+{% endblock %}

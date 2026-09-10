@@ -1,0 +1,45 @@
+<div class="cabeca-processo">
+  <div class="linha1">
+    <div>
+      <h1>{{ p.numero }} <span class="fraco">·</span> {{ p.produto.modelo }}</h1>
+      <div class="meta">
+        {{ p.tipo_processo }}
+        {% if p.produto.nome_comercial %} · {{ p.produto.nome_comercial }}{% endif %}
+        {% if p.ocd %} · OCD: {{ p.ocd.nome }}{% endif %}
+        {% if p.laboratorio %} · Lab: {{ p.laboratorio.nome }}{% endif %}
+        · aberto em {{ p.data_abertura|data }}
+      </div>
+    </div>
+    <div class="direita">
+      <span class="badge" style="{{ STATUS_ESTILOS.get(p.status, '') }}">{{ p.status }}</span>
+      <a class="btn btn-mini" href="{{ url_for('processos.editar', pid=p.id) }}">
+        {{ ICO_EDITAR }} Editar dados</a>
+    </div>
+  </div>
+  <nav class="abas">
+    <a href="{{ url_for('processos.detalhe', pid=p.id) }}" class="{{ 'ativa' if aba == 'geral' }}">Visão geral</a>
+    <a href="{{ url_for('documentos.lista', pid=p.id) }}" class="{{ 'ativa' if aba == 'documentos' }}">
+      Documentos <span class="cont">{{ p.documentos|length }}</span></a>
+    <a href="{{ url_for('processos.rastreabilidade', pid=p.id) }}" class="{{ 'ativa' if aba == 'rastreabilidade' }}">Rastreabilidade</a>
+    {% if p.requer_ciberseguranca %}
+    <a href="{{ url_for('processos.ciberseguranca', pid=p.id) }}" class="{{ 'ativa' if aba == 'ciber' }}">
+      Segurança cibernética
+      {% if p.ciber_sem_justificativa %}
+      <span class="cont" style="background:#fdecea;color:#96352c">!</span>
+      {% elif p.ciber_nao_aplicaveis %}
+      <span class="cont">{{ p.ciber_nao_aplicaveis|length }} NA</span>
+      {% endif %}
+    </a>
+    {% endif %}
+    <a href="{{ url_for('fotos.lista', pid=p.id) }}" class="{{ 'ativa' if aba == 'fotos' }}">
+      Fotos <span class="cont">{{ p.fotos|length }}</span></a>
+    <a href="{{ url_for('anexos.lista', pid=p.id) }}" class="{{ 'ativa' if aba == 'anexos' }}">
+      Anexos <span class="cont">{{ p.anexos|length }}</span></a>
+    <a href="{{ url_for('processos.similares', pid=p.id) }}" class="{{ 'ativa' if aba == 'similares' }}">
+      Similares <span class="cont">{{ p.similares|length }}</span></a>
+    <a href="{{ url_for('processos.amostras', pid=p.id) }}" class="{{ 'ativa' if aba == 'amostras' }}">
+      Amostras e selos <span class="cont">{{ p.amostras|length }}</span></a>
+    <a href="{{ url_for('pacote.ver', pid=p.id) }}" class="{{ 'ativa' if aba == 'pacote' }}">
+      📦 Pacote OCD</a>
+  </nav>
+</div>

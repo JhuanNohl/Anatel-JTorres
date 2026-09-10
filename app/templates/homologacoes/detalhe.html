@@ -1,0 +1,279 @@
+{% extends "base.html" %}
+{% block titulo %}{{ h.numero }}{% endblock %}
+
+{% block conteudo %}
+<div class="linha-flex mb16">
+  <div>
+    <h1 class="mb0">{{ h.numero }}</h1>
+    <p class="fraco pequeno mb0">{{ h.lista_modelos }}</p>
+  </div>
+  <div class="direita barra-acoes">
+    <a class="btn" href="{{ url_for('homologacoes.form', hid=h.id) }}">
+      {{ ICO_EDITAR }} Editar</a>
+    <a class="btn" href="{{ url_for('homologacoes.lista') }}">Voltar à base</a>
+  </div>
+</div>
+
+<div class="grade g2">
+  <div class="cartao">
+    <h2>Dados da homologação</h2>
+    <div class="dados">
+      <div class="item"><div class="rot">Nº de homologação</div><div class="val">{{ h.numero }}</div></div>
+      <div class="item"><div class="rot">Certificado (CCT)</div><div class="val">{{ h.certificado or '-' }}</div></div>
+      <div class="item"><div class="rot">Validade</div><div class="val">{{ h.validade|data }}</div></div>
+      <div class="item"><div class="rot">Dias para vencer</div>
+        <div class="val {{ 'alerta-critico' if h.alerta in ['critico','vencida'] else '' }}">
+          {{ h.dias_para_vencer if h.dias_para_vencer is not none else '-' }}</div></div>
+      <div class="item"><div class="rot">Situação</div>
+        <div class="val"><span class="badge {{ 'ok' if 'Emitida' in h.situacao else 'warn' }}">{{ h.situacao }}</span></div></div>
+      <div class="item"><div class="rot">Natureza</div><div class="val">{{ h.natureza }}</div></div>
+      <div class="item"><div class="rot">Tipo</div><div class="val">{{ h.tipo or '-' }}</div></div>
+      <div class="item"><div class="rot">OCD</div><div class="val">{{ h.ocd.nome if h.ocd else '-' }}</div></div>
+      <div class="item"><div class="rot">Aviso de renovação</div>
+        <div class="val">{{ h.aviso_enviado_em|datahora if h.aviso_enviado_em else 'não enviado' }}</div></div>
+      <div class="item"><div class="rot">Versão da placa / módulo</div>
+        <div class="val">{{ h.versao_placa or '-' }}</div></div>
+    </div>
+
+    <hr>
+    <div class="bloco-anatel">
+      <div class="linha-flex mb8">
+        <div class="rot pequeno negrito mb0">Direto da base pública da ANATEL</div>
+        <div class="direita pequeno fraco">
+          {% if h.sincronizado_em %}lido em {{ h.sincronizado_em|datahora }}
+          {% else %}<span class="badge off">nunca sincronizado</span>{% endif %}
+        </div>
+      </div>
+      <div class="dados">
+        <div class="item"><div class="rot">Situação do certificado</div>
+          <div class="val"><span class="badge {{ h.selo_situacao }}">{{ h.situacao_certificado or '—' }}</span></div></div>
+        <div class="item"><div class="rot">Vigente hoje</div>
+          <div class="val">{{ 'sim' if h.vigente else 'não' }}</div></div>
+        <div class="item"><div class="rot">Data da homologação</div>
+          <div class="val">{{ h.data_homologacao|data }}</div></div>
+        <div class="item"><div class="rot">Categoria</div>
+          <div class="val">{{ h.tipo_produto_anatel or '-' }}</div></div>
+        <div class="item"><div class="rot">Ensaios / tipo de produto</div>
+          <div class="val">
+            {%- if h.ensaios %}
+            {% for ensaio in h.ensaios %}<span class="chip">{{ ensaio }}</span>{% endfor %}
+            {%- if h.ensaios|length > 1 %}
+            <div class="pequeno fraco">Este certificado tem {{ h.ensaios|length }} ensaios —
+              a base pública traz uma linha para cada, com o mesmo número, e aqui elas
+              viram um registro só.</div>
+            {%- endif %}
+            {%- else %}-{% endif %}</div></div>
+        <div class="item"><div class="rot">Fabricante</div>
+          <div class="val">{{ h.fabricante_nome or '-' }}</div></div>
+        <div class="item"><div class="rot">Solicitante</div>
+          <div class="val">{{ h.solicitante or '-' }}</div></div>
+        <div class="item"><div class="rot">CNPJ</div><div class="val">{{ h.cnpj or '-' }}</div></div>
+        <div class="item"><div class="rot">Origem do registro</div>
+          <div class="val">{{ h.origem }}</div></div>
+      </div>
+      <p class="pequeno fraco mb0 mt16">Estes campos são reescritos a cada atualização da base.
+      O resto da ficha é seu e não é tocado.
+      <a href="{{ url_for('produtos.base') }}">atualizar a base</a></p>
+    </div>
+
+    <hr id="produtos">
+    <div class="linha-flex mb8">
+      <div class="rot pequeno negrito mb0">Produtos que utilizam este módulo</div>
+      <span class="badge {{ 'info' if h.aplicacoes_produtos else 'off' }}">{{ h.aplicacoes_produtos|length }}</span>
+    </div>
+    <p class="pequeno fraco">Produtos acabados que embarcam este módulo. Não estão no
+    certificado, mas dependem dele — se esta homologação cair, eles param.</p>
+    {% if h.aplicacoes_produtos %}
+    <table class="tabela">
+      <tbody>
+      {% for ap in h.aplicacoes_produtos %}
+      <tr>
+        <td>
+          {% if ap.produto %}
+          <a href="{{ url_for('produtos.detalhe', pid=ap.produto.id) }}">{{ ap.modelo }}</a>
+          {% else %}
+          {{ ap.modelo }}
+          <span class="chip" title="Este nome ainda não é um modelo do catálogo">fora do catálogo</span>
+          {% endif %}
+        </td>
+        <td class="acoes">
+          <div class="acoes-icones">
+            {% if not ap.produto %}
+            <form method="post" action="{{ url_for('produtos.promover_aplicacao', aid=ap.id) }}">
+              <input type="hidden" name="voltar" value="{{ request.path }}">
+              <button class="btn btn-mini" title="Cadastrar “{{ ap.modelo }}” como modelo do catálogo">
+                cadastrar</button>
+            </form>
+            {% endif %}
+            <form method="post" action="{{ url_for('produtos.excluir_aplicacao', aid=ap.id) }}"
+                  onsubmit="return confirm('Desvincular {{ ap.modelo }} desta homologação?')">
+              <input type="hidden" name="voltar" value="{{ request.path }}">
+              <button class="btn-ico perigo" title="Desvincular" aria-label="Desvincular">
+                {{ ICO_EXCLUIR }}</button>
+            </form>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% endif %}
+    <form method="post" action="{{ url_for('produtos.nova_aplicacao', hid=h.id) }}" class="mt16">
+      <input type="hidden" name="voltar" value="{{ request.path }}">
+      <div class="upload-inline">
+        <input type="text" name="modelo" placeholder="Modelo do produto (vários separados por vírgula)">
+        <button class="btn">Vincular</button>
+      </div>
+    </form>
+
+    <hr>
+    <div class="linha-flex mb8">
+      <div class="rot pequeno negrito mb0">Fotos do produto</div>
+      <span class="badge {{ 'ok' if h.fotos else 'off' }}">{{ h.fotos|length }}</span>
+    </div>
+    <p class="pequeno fraco">Valem para todos os modelos deste certificado.
+    A marcada como <strong>capa</strong> é a que aparece na lista de produtos — clique na
+    estrela de outra para trocar. Clique na foto para abrir o visor e andar entre elas.</p>
+    {% if h.fotos %}
+    <div class="galeria mb16" data-galeria>
+      {% for foto in h.fotos %}
+      <div class="mini {{ 'e-capa' if loop.first }}">
+        <a href="{{ url_for('arquivo', relativo=foto.arquivo) }}" target="_blank">
+          <img src="{{ url_for('arquivo', relativo=foto.arquivo) }}" data-visor
+               data-titulo="{{ h.lista_modelos or h.numero }} · foto {{ loop.index }} de {{ h.fotos|length }}"
+               alt="{{ h.lista_modelos or h.numero }}" loading="lazy"></a>
+        <div class="acoes-foto">
+          {% if not loop.first %}
+          <form method="post" action="{{ url_for('produtos.virar_capa', fid=foto.id) }}">
+            <input type="hidden" name="voltar" value="{{ request.path }}">
+            <button title="Usar como capa" aria-label="Usar como capa">{{ ICO_CAPA }}</button>
+          </form>
+          {% endif %}
+          <form method="post" action="{{ url_for('produtos.excluir_foto', fid=foto.id) }}"
+                onsubmit="return confirm('Remover esta foto?')">
+            <input type="hidden" name="voltar" value="{{ request.path }}">
+            <button class="perigo" title="Remover esta foto" aria-label="Remover">
+              {{ ICO_EXCLUIR }}</button>
+          </form>
+        </div>
+        {% if loop.first %}<span class="badge ok etiqueta-capa">capa</span>{% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+    <form method="post" enctype="multipart/form-data"
+          action="{{ url_for('produtos.enviar_fotos', hid=h.id) }}">
+      <input type="hidden" name="voltar" value="{{ request.path }}">
+      <div class="upload-inline">
+        <input type="file" name="fotos" accept="image/*" multiple required>
+        <button class="btn btn-primario">Anexar fotos</button>
+      </div>
+    </form>
+
+    {% if h.observacoes %}
+    <hr>
+    <div class="rot pequeno negrito mb8">Observações</div>
+    <div class="pequeno">{{ h.observacoes|nl2br }}</div>
+    {% endif %}
+  </div>
+
+  <div>
+    <div class="cartao">
+      <h2>Modelos cobertos</h2>
+      <table class="tabela">
+        <tbody>
+        {% for m in h.modelos %}
+        <tr>
+          <td class="negrito">{{ m.modelo }}</td>
+          <td class="acoes pequeno">
+            {% if m.produto %}
+            <a href="{{ url_for('produtos.detalhe', pid=m.produto_id) }}">ficha do produto</a>
+            {% else %}<span class="fraco">sem ficha cadastrada</span>{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="cartao">
+      <h2>Renovação</h2>
+      <p class="pequeno fraco">Renovar exige Declaração de Manutenção, declaração de
+      rastreabilidade, ISO 9001 do fabricante com tradução juramentada e <strong>novas fotos
+      internas</strong> dos 2 lados das placas, com e sem blindagem, com régua ao lado.</p>
+      <div class="barra-acoes">
+        {% if not h.aviso_enviado_em %}
+        <form method="post" action="{{ url_for('homologacoes.aviso', hid=h.id) }}">
+          <button class="btn">Marcar aviso enviado</button>
+        </form>
+        {% else %}
+        <span class="badge ok">aviso registrado em {{ h.aviso_enviado_em|data }}</span>
+        {% endif %}
+        {% if h.processo_id %}
+        <a class="btn" href="{{ url_for('processos.detalhe', pid=h.processo_id) }}">
+          Ver o processo desta renovação</a>
+        {% elif not h.nao_vai_renovar %}
+        <form method="post" action="{{ url_for('homologacoes.renovar', hid=h.id) }}"
+              onsubmit="return confirm('Abrir processo de renovação desta homologação?')">
+          <button class="btn btn-primario">⟳ Abrir processo de renovação</button>
+        </form>
+        {% endif %}
+      </div>
+
+      {% if h.nao_vai_renovar %}
+      <div class="aviso info mt16 mb0">
+        <span>i</span>
+        <div><strong>Decidido: não renovar.</strong> {{ h.renovacao_motivo }}
+          <br><span class="pequeno">
+            {{ h.renovacao_decidida_em|datahora if h.renovacao_decidida_em }}
+            {%- if h.renovacao_decidida_por %} · por {{ h.renovacao_decidida_por }}{% endif %}</span>
+          <form method="post" action="{{ url_for('homologacoes.reabrir_decisao', hid=h.id) }}"
+                class="mt8">
+            <button class="btn btn-mini">desfazer decisão</button>
+          </form>
+        </div>
+      </div>
+      {% elif not h.processo_id %}
+      <details class="bloco mt16">
+        <summary>Não vamos renovar esta homologação</summary>
+        <form method="post" action="{{ url_for('homologacoes.nao_renovar', hid=h.id) }}">
+          <div class="campo">
+            <label>Motivo</label>
+            <textarea name="motivo" rows="2" required
+                      placeholder="Ex.: inviável comercialmente — produto saiu de linha."></textarea>
+            <span class="dica">Fica registrado com data e hora, e aparece na lista de
+              produtos ao lado do modelo.</span>
+          </div>
+          <div class="campo">
+            <label>Registrado por</label>
+            <input type="text" name="autor">
+          </div>
+          <button class="btn btn-escuro mt8">Registrar decisão</button>
+        </form>
+      </details>
+      {% endif %}
+    </div>
+
+    {% if h.processo %}
+    <div class="cartao">
+      <h3>Processo de origem</h3>
+      <a href="{{ url_for('processos.detalhe', pid=h.processo_id) }}">{{ h.processo.numero }}</a>
+      — {{ h.processo.produto.modelo }}
+    </div>
+    {% endif %}
+
+    <div class="cartao">
+      <h3>Excluir</h3>
+      <form method="post" action="{{ url_for('homologacoes.excluir', hid=h.id) }}"
+            onsubmit="return confirm('Excluir esta homologação da base?')">
+        <button class="btn btn-perigo">{{ ICO_EXCLUIR }} Excluir homologação</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/visor.js') }}"></script>
+<script src="{{ url_for('static', filename='js/popover.js') }}"></script>
+{% endblock %}

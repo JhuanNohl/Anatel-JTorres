@@ -1,0 +1,192 @@
+/* Tela de captura pelo celular.
+   Regras que valem para quem está de pé, com o produto numa mão e o celular na
+   outra: alvo de toque grande (mínimo 44 px), texto que se lê sem aproximar,
+   uma decisão por tela e o botão principal sempre ao alcance do polegar. */
+
+body.cel{
+  background:var(--fundo);
+  margin:0;
+  padding:0;
+  font-size:17px;                 /* 17px evita o zoom automático do iOS no input */
+  -webkit-text-size-adjust:100%;
+}
+
+.cel-topo{
+  position:sticky; top:0; z-index:5;
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  background:var(--cinza); color:#fff;
+  padding:calc(10px + env(safe-area-inset-top)) 16px 10px;
+}
+.cel-topo strong{display:block; font-size:15px; line-height:1.2}
+.cel-topo span{display:block; font-size:13px; opacity:.75}
+.cel-contagem{
+  background:rgba(255,255,255,.15); border-radius:999px;
+  padding:4px 12px; font-size:14px; font-weight:600; white-space:nowrap;
+}
+.cel-barra{height:4px; background:rgba(0,0,0,.08)}
+.cel-barra i{display:block; height:100%; background:var(--verde); transition:width .3s}
+
+.cel-corpo{
+  padding:16px 16px calc(28px + env(safe-area-inset-bottom));
+  max-width:640px; margin:0 auto;
+}
+
+.cel-passo{
+  display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+  color:var(--texto-fraco); font-size:14px; margin-bottom:4px;
+}
+.cel-titulo{font-size:26px; line-height:1.15; margin:0 0 14px; color:var(--cinza)}
+.cel-secao{font-size:15px; text-transform:uppercase; letter-spacing:.6px;
+  color:var(--texto-fraco); margin:26px 0 10px}
+
+.cel-desenho{
+  background:var(--branco); border:1px solid var(--borda); border-radius:var(--raio);
+  padding:10px; margin-bottom:14px;
+}
+.cel-desenho svg{width:100%; height:auto; display:block}
+
+.cel-texto{margin:0 0 14px; line-height:1.5; color:var(--texto)}
+.cel-nota{margin:14px 0 0; font-size:14px; color:var(--texto-fraco); line-height:1.5}
+
+.cel-atencao{
+  background:#fdf6e9; border-left:4px solid var(--amarelo);
+  border-radius:var(--raio); padding:12px 14px; margin-bottom:16px; line-height:1.45;
+}
+
+/* ---------------------------------------------------------------- camera */
+/* O botao da camera fica GRUDADO no rodape: com o desenho da vista e o texto da
+   OCD acima, ele caia para fora da tela e a pessoa tinha de rolar para achar o
+   botao principal - justamente com o produto numa mao e o celular na outra. */
+.cel-camera{
+  position:sticky; bottom:0; z-index:4;
+  margin:20px -16px 0;
+  padding:12px 16px calc(12px + env(safe-area-inset-bottom));
+  background:var(--fundo);
+  border-top:1px solid var(--borda);
+  box-shadow:0 -6px 16px rgba(71,75,79,.07);
+}
+.cel-botao{
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:4px; min-height:96px; cursor:pointer;
+  background:var(--verde); color:#fff; border-radius:14px;
+  box-shadow:0 6px 16px rgba(122,193,67,.35);
+}
+.cel-botao:active{transform:translateY(1px)}
+.cel-botao .ico{font-size:30px; line-height:1}
+.cel-botao .rot{font-size:18px; font-weight:600}
+.cel-galeria{
+  display:block; text-align:center; padding:12px; margin-top:4px; min-height:44px;
+  box-sizing:border-box; color:var(--texto-fraco); text-decoration:underline;
+  cursor:pointer;
+}
+.cel-enviando{display:none; text-align:center; padding:16px; color:var(--texto-fraco)}
+.cel-camera.enviando .cel-botao,
+.cel-camera.enviando .cel-galeria{display:none}
+.cel-camera.enviando .cel-enviando{display:block}
+
+.cel-campo{display:block; margin-bottom:12px; color:var(--texto-fraco); font-size:14px}
+.cel-campo input{
+  display:block; width:100%; margin-top:6px; padding:14px;
+  font-size:17px; border:1px solid var(--borda); border-radius:var(--raio);
+  background:var(--branco); box-sizing:border-box;
+}
+
+/* ---------------------------------------------------------------- veredito */
+.cel-veredito{
+  display:flex; align-items:center; gap:14px;
+  border-radius:var(--raio); padding:16px; margin-bottom:16px; color:#fff;
+}
+.cel-veredito.ok{background:var(--verde-esc)}
+.cel-veredito.nao{background:var(--vermelho)}
+.cel-veredito .marca{font-size:30px; line-height:1}
+.cel-veredito strong{display:block; font-size:19px}
+.cel-veredito span{font-size:14px; opacity:.9}
+
+.cel-previa{
+  width:100%; border-radius:var(--raio); display:block; margin-bottom:16px;
+  border:1px solid var(--borda); background:var(--branco);
+}
+
+.cel-problema, .cel-aviso{
+  border-radius:var(--raio); padding:14px; margin-bottom:12px; line-height:1.45;
+}
+.cel-problema{background:#fdeeec; border-left:4px solid var(--vermelho)}
+.cel-aviso{background:#fdf6e9; border-left:4px solid var(--amarelo)}
+.cel-problema strong, .cel-aviso strong{display:block; margin-bottom:4px; color:var(--cinza)}
+.cel-problema span, .cel-aviso span{color:var(--texto)}
+
+/* ---------------------------------------------------------------- acoes */
+.cel-acoes{margin-top:22px; display:flex; flex-direction:column; gap:10px}
+.cel-botao-linha{
+  display:block; width:100%; box-sizing:border-box; text-align:center;
+  background:var(--verde); color:#fff; border:0; border-radius:12px;
+  padding:18px 16px; font-size:17px; font-weight:600; text-decoration:none;
+  cursor:pointer;
+}
+.cel-btn-secundario{
+  display:block; width:100%; box-sizing:border-box; text-align:center;
+  background:var(--branco); color:var(--cinza); border:1px solid var(--borda);
+  border-radius:12px; padding:16px; font-size:16px; text-decoration:none;
+  cursor:pointer;
+}
+.cel-nav{display:flex; justify-content:space-between; gap:12px; margin-top:20px}
+.cel-nav a{
+  display:flex; align-items:center; min-height:44px; padding:0 4px;
+  color:var(--texto-fraco); font-size:15px;
+}
+
+.cel-na{margin-top:18px; border-top:1px solid var(--borda); padding-top:14px}
+.cel-na summary{
+  display:flex; align-items:center; min-height:44px;
+  color:var(--texto-fraco); font-size:15px; cursor:pointer;
+}
+.cel-na input{
+  display:block; width:100%; box-sizing:border-box; margin:8px 0 10px;
+  padding:14px; font-size:17px; border:1px solid var(--borda); border-radius:var(--raio);
+}
+.cel-na label{font-size:14px; color:var(--texto-fraco)}
+.cel-manter summary{
+  display:flex; align-items:center; min-height:44px;
+  color:var(--texto-fraco); font-size:15px; cursor:pointer;
+}
+
+/* ---------------------------------------------------------------- listas */
+.cel-item{
+  display:flex; align-items:center; gap:12px; text-decoration:none;
+  background:var(--branco); border:1px solid var(--borda); border-radius:var(--raio);
+  padding:10px 12px; margin-bottom:8px; color:var(--cinza); min-height:56px;
+}
+.cel-item.falta{border-left:4px solid var(--amarelo)}
+.cel-item img{width:52px; height:52px; object-fit:cover; border-radius:6px; flex:0 0 auto}
+.cel-item .nome{flex:1; line-height:1.3}
+.cel-item .nome small{display:block; color:var(--texto-fraco); font-size:13px}
+.cel-item .nome small.ressalva{color:var(--vermelho)}
+.cel-item .marca{font-size:13px; color:var(--texto-fraco)}
+
+.cel-jafeita{
+  display:flex; align-items:center; gap:12px; background:var(--branco);
+  border:1px solid var(--borda); border-radius:var(--raio); padding:10px; margin-bottom:14px;
+}
+.cel-jafeita img{width:56px; height:56px; object-fit:cover; border-radius:6px}
+.cel-jafeita strong{display:block; font-size:15px}
+.cel-jafeita span{font-size:13px; color:var(--texto-fraco)}
+
+.cel-grade{display:grid; grid-template-columns:repeat(3,1fr); gap:8px}
+.cel-grade img{width:100%; aspect-ratio:1; object-fit:cover; border-radius:6px}
+
+.cel-recado{border-radius:var(--raio); padding:12px 14px; margin-bottom:14px}
+.cel-recado.ok{background:#eef7e6; border-left:4px solid var(--verde)}
+.cel-recado.erro{background:#fdeeec; border-left:4px solid var(--vermelho)}
+
+/* --------------------------------------------------- cartao do QR (desktop) */
+.qr-cartao{display:flex; gap:20px; align-items:flex-start; flex-wrap:wrap}
+.qr-cartao .qr{border:1px solid var(--borda); border-radius:var(--raio); background:#fff}
+.qr-lado{flex:1; min-width:240px}
+.qr-endereco{
+  font-family:ui-monospace, Consolas, monospace; font-size:13px; word-break:break-all;
+  background:var(--fundo); border:1px solid var(--borda); border-radius:6px;
+  padding:8px 10px; margin:10px 0; display:block; color:var(--texto);
+}
+.selo-veredito{font-size:12px; padding:2px 8px; border-radius:999px; white-space:nowrap}
+.selo-veredito.ok{background:#eef7e6; color:var(--verde-esc)}
+.selo-veredito.nao{background:#fdeeec; color:var(--vermelho)}

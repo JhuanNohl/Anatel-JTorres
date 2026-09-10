@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+{% block titulo %}Anexos · {{ p.numero }}{% endblock %}
+
+{% block conteudo %}
+{% include "processos/_abas.html" %}
+
+<div class="grade g2">
+  <div>
+    {% if grupos %}
+      {% for categoria, itens in grupos %}
+      <div class="cartao">
+        <div class="cartao-titulo">
+          <h3>{{ categoria }}</h3>
+          <span class="badge neutro">{{ itens|length }}</span>
+        </div>
+        <div class="rolagem">
+        <table class="tabela">
+          <thead><tr><th>Arquivo</th><th>Documento</th><th class="num">Valor</th><th class="num">Datas</th><th class="acoes"></th></tr></thead>
+          <tbody>
+          {% for a in itens %}
+          <tr>
+            <td>
+              <a href="{{ url_for('arquivo', relativo=a.arquivo) }}" target="_blank">{{ a.titulo or a.nome_original }}</a>
+              <br><small class="fraco">{{ a.nome_original }} · {{ a.tamanho|tamanho }} · {{ a.criado_em|data }}</small>
+              {% if a.observacao %}<br><small>{{ a.observacao }}</small>{% endif %}
+            </td>
+            <td class="pequeno">{{ a.numero_documento or '-' }}</td>
+            <td class="num pequeno">{{ a.valor|moeda if a.valor else '-' }}</td>
+            <td class="num pequeno">
+              {% if a.emissao %}emissão {{ a.emissao|data }}<br>{% endif %}
+              {% if a.vencimento %}
+                <span class="{{ 'alerta-critico' if a.vencimento < hoje }}">vence {{ a.vencimento|data }}</span>
+              {% endif %}
+              {% if not a.emissao and not a.vencimento %}-{% endif %}
+            </td>
+            <td class="acoes">
+              <div class="acoes-icones">
+                <a class="btn-ico" title="Baixar o arquivo" aria-label="Baixar"
+                   href="{{ url_for('download', relativo=a.arquivo) }}">{{ ICO_BAIXAR }}</a>
+                <form method="post" action="{{ url_for('anexos.excluir', pid=p.id, aid=a.id) }}"
+                      onsubmit="return confirm('Remover este anexo?')">
+                  <button class="btn-ico perigo" title="Remover o anexo" aria-label="Remover">
+                    {{ ICO_EXCLUIR }}</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="cartao">
+        <div class="vazio"><span class="ico">📎</span>
+          Nenhum anexo ainda. Guarde aqui propostas, notas fiscais, boletos, datasheet,
+          manual, laudos e o certificado.</div>
+      </div>
+    {% endif %}
+  </div>
+
+  <div>
+    <div class="cartao">
+      <h2>Documentos exigidos pela OCD</h2>
+      <p class="pequeno fraco">É aqui que entram o <strong>datasheet</strong> e o
+      <strong>manual</strong> — escolha a categoria e envie o arquivo. Sem isso o pacote da OCD
+      fica bloqueado.<br>
+      Cartão CNPJ, contrato social e certificado ISO ficam em
+      <a href="{{ url_for('main.empresa') }}#documentos">documentos da empresa</a>: valem para
+      todos os processos e entram no pacote só quando a OCD pedir.</p>
+      <div class="rolagem">
+      <table class="tabela">
+        <tbody>
+        {% for rotulo, aceitas, tem in exigidos %}
+        <tr>
+          <td>
+            <span class="{{ 'fraco' if tem }}">{{ rotulo }}</span>
+          </td>
+          <td class="acoes nowrap">
+            {% if tem %}
+              <span class="badge ok">anexado</span>
+            {% else %}
+              <span class="badge warn">falta</span>
+              <a class="btn btn-mini btn-primario"
+                 href="{{ url_for('anexos.lista', pid=p.id, categoria=aceitas[0]) }}#enviar">
+                Anexar</a>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      </div>
+    </div>
+
+    <div class="cartao" id="enviar">
+      <h2>Anexar arquivo</h2>
+      <form method="post" action="{{ url_for('anexos.enviar', pid=p.id) }}" enctype="multipart/form-data">
+        <div class="campos">
+          <div class="campo">
+            <label>Categoria</label>
+            <select name="categoria" id="categoria" onchange="alternarFinanceiro()">
+              {% for c in CATEGORIAS_ANEXO %}
+              <option value="{{ c }}" {{ 'selected' if categoria_escolhida == c }}>{{ c }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="campo">
+            <label>Arquivo(s)</label>
+            <input type="file" name="arquivos" multiple required>
+            <span class="dica">PDF, imagens, planilhas, .docx — qualquer formato.</span>
+          </div>
+          <div class="campo">
+            <label>Título</label>
+            <input type="text" name="titulo" placeholder="Ex.: Proposta OCP-Teli nº 1234">
+          </div>
+          <div id="bloco_financeiro">
+            <div class="grade g2">
+              <div class="campo">
+                <label>Nº do documento</label>
+                <input type="text" name="numero_documento" placeholder="NF / proposta / boleto">
+              </div>
+              <div class="campo">
+                <label>Valor</label>
+                <input type="text" name="valor" placeholder="0,00">
+              </div>
+              <div class="campo">
+                <label>Emissão</label>
+                <input type="date" name="emissao">
+              </div>
+              <div class="campo">
+                <label>Vencimento</label>
+                <input type="date" name="vencimento">
+              </div>
+            </div>
+          </div>
+          <div class="campo">
+            <label>Observação</label>
+            <textarea name="observacao" rows="2"></textarea>
+          </div>
+        </div>
+        <button class="btn btn-primario mt16">Anexar</button>
+      </form>
+    </div>
+
+    <div class="cartao">
+      <h3>Resumo financeiro do processo</h3>
+      <div class="dados">
+        <div class="item"><div class="rot">Valor OCD (orçado)</div><div class="val">{{ p.valor_ocd|moeda }}</div></div>
+        <div class="item"><div class="rot">Valor laboratório (orçado)</div><div class="val">{{ p.valor_laboratorio|moeda }}</div></div>
+        <div class="item"><div class="rot">Outros</div><div class="val">{{ p.valor_outros|moeda }}</div></div>
+        <div class="item"><div class="rot">Total orçado</div>
+          <div class="val negrito">{{ p.custo_total|moeda if p.custo_total else '-' }}</div></div>
+        <div class="item"><div class="rot">Notas fiscais anexadas</div>
+          <div class="val">{{ total_notas|moeda if total_notas else '-' }}</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+var FINANCEIRAS = {{ financeiras|list|tojson }};
+function alternarFinanceiro(){
+  var sel = document.getElementById('categoria');
+  var bloco = document.getElementById('bloco_financeiro');
+  bloco.style.display = FINANCEIRAS.indexOf(sel.value) >= 0 ? '' : 'none';
+}
+alternarFinanceiro();
+</script>
+{% endblock %}

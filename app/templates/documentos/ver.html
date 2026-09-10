@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block titulo %}{{ d.titulo }} · {{ p.numero }}{% endblock %}
+
+{% block conteudo %}
+{% include "processos/_abas.html" %}
+
+<div class="barra-acoes mb16">
+  {% if d.arquivo_pdf %}
+  <a class="btn btn-primario" href="{{ url_for('download', relativo=d.arquivo_pdf) }}">
+    📄 Baixar PDF</a>
+  <a class="btn" target="_blank" href="{{ url_for('arquivo', relativo=d.arquivo_pdf) }}">Ver PDF</a>
+  {% endif %}
+  {% if d.arquivo_docx %}
+  <a class="btn" href="{{ url_for('download', relativo=d.arquivo_docx) }}">.docx (editável)</a>
+  {% endif %}
+  <a class="btn" href="{{ url_for('documentos.editar', did=d.id) }}">
+    {{ ICO_EDITAR }} Editar texto</a>
+  <form method="post" action="{{ url_for('documentos.refazer_arquivos', did=d.id) }}">
+    <button class="btn" title="Refaz PDF e .docx com o layout e as imagens atuais, sem mexer no texto">
+      ↻ Atualizar arquivos</button>
+  </form>
+  <form method="post" action="{{ url_for('documentos.regerar', did=d.id) }}"
+        onsubmit="return confirm('Regerar o texto a partir do modelo? Ajustes manuais serão perdidos.')">
+    <button class="btn">Regerar do modelo</button>
+  </form>
+  <form method="post" action="{{ url_for('documentos.excluir', did=d.id) }}"
+        onsubmit="return confirm('Excluir este documento?')">
+    <button class="btn btn-perigo">{{ ICO_EXCLUIR }} Excluir</button>
+  </form>
+  <span class="fraco pequeno direita">
+    versão {{ d.versao }} · gerado em {{ d.criado_em|datahora }}
+    {% if d.template %} · modelo: {{ d.template.nome }}{% endif %}
+  </span>
+</div>
+
+{% set sig = d.signatario or p.signatario %}
+{% if not empresa_atual.logo_arquivo or (sig and not sig.assinatura_arquivo) %}
+<div class="aviso info nao-imprimir">
+  <span>i</span>
+  <div>
+    {% if not empresa_atual.logo_arquivo %}
+      O cabeçalho está saindo com o <strong>nome da empresa em texto</strong> porque não há
+      logotipo.
+      <a href="{{ url_for('main.empresa') }}">Enviar o logotipo</a>{% if sig and not sig.assinatura_arquivo %} ·{% endif %}
+    {% endif %}
+    {% if sig and not sig.assinatura_arquivo %}
+      A assinatura sai como linha em branco para assinar à mão.
+      <a href="{{ url_for('main.signatarios', editar=sig.id) }}">Enviar imagem da assinatura</a>
+    {% endif %}
+    <br><small>A visualização acima passa a mostrar a imagem na hora. Para atualizar o
+    <strong>PDF e o .docx já gerados</strong>, use <em>↻ Atualizar arquivos</em> — o texto
+    não é alterado.</small>
+  </div>
+</div>
+{% endif %}
+
+{% include "documentos/_folha.html" %}
+{% endblock %}

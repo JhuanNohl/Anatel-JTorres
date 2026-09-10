@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block titulo %}Backup{% endblock %}
+
+{% block conteudo %}
+<h1>Backup e segurança dos dados</h1>
+
+<div class="grade g2">
+  <div>
+    <div class="cartao">
+      <div class="cartao-titulo">
+        <h2>Cópia de segurança</h2>
+        <form method="post">
+          <button class="btn btn-primario">Fazer cópia agora</button>
+        </form>
+      </div>
+      <p class="pequeno fraco">A cópia é um arquivo do banco inteiro, guardado em
+      <code>{{ pasta_backup }}</code>. O sistema mantém as 30 mais recentes e cria uma
+      <strong>automaticamente</strong> sempre que uma atualização do sistema precisa mexer na
+      estrutura do banco.</p>
+
+      {% if copias %}
+      <div class="rolagem">
+      <table class="tabela">
+        <thead><tr><th>Arquivo</th><th class="num">Data</th><th class="num">Tamanho</th></tr></thead>
+        <tbody>
+          {% for c in copias %}
+          <tr>
+            <td class="pequeno">{{ c.nome }}</td>
+            <td class="num pequeno">{{ c.data|datahora }}</td>
+            <td class="num pequeno">{{ c.tamanho|tamanho }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      </div>
+      {% else %}
+      <div class="vazio">Nenhuma cópia ainda.</div>
+      {% endif %}
+    </div>
+
+    <div class="cartao">
+      <h3>Como restaurar</h3>
+      <ol class="pequeno" style="padding-left:20px;margin:0">
+        <li>Feche o sistema (feche a janela preta do terminal).</li>
+        <li>Vá em <code>{{ pasta_backup }}</code> e copie a cópia desejada.</li>
+        <li>Renomeie para <code>anatel.db</code> e substitua o arquivo em
+          <code>{{ banco.parent }}</code>.</li>
+        <li>Abra o sistema de novo.</li>
+      </ol>
+      <div class="aviso info" style="margin-top:12px">
+        <span>i</span>
+        <div>A cópia contém <strong>o banco</strong> (processos, documentos, checklists,
+        homologações). Os <strong>arquivos</strong> — fotos, anexos e .docx — ficam em
+        <code>{{ pasta_arquivos }}</code> e são sincronizados pelo OneDrive.</div>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <div class="cartao">
+      <h2>O que está guardado hoje</h2>
+      <div class="grade g2">
+        <div class="indicador info"><div class="valor">{{ contagens.processos }}</div>
+          <div class="rotulo">Processos</div></div>
+        <div class="indicador ok"><div class="valor">{{ contagens.homologacoes }}</div>
+          <div class="rotulo">Homologações</div></div>
+        <div class="indicador"><div class="valor">{{ contagens.documentos }}</div>
+          <div class="rotulo">Documentos</div></div>
+        <div class="indicador off"><div class="valor">{{ contagens.fotos }}</div>
+          <div class="rotulo">Fotos</div></div>
+      </div>
+      <hr>
+      <div class="dados">
+        <div class="item"><div class="rot">Produtos</div><div class="val">{{ contagens.produtos }}</div></div>
+        <div class="item"><div class="rot">Anexos</div><div class="val">{{ contagens.anexos }}</div></div>
+        <div class="item"><div class="rot">Banco de dados</div>
+          <div class="val">{{ tamanho_banco|tamanho }}</div></div>
+      </div>
+      <hr>
+      <div class="pequeno fraco">Arquivo do banco:<br><code>{{ banco }}</code></div>
+    </div>
+
+    <div class="cartao">
+      <h3>Atualizações do sistema não apagam dados</h3>
+      <p class="pequeno">Quando o sistema ganha um campo novo, ele compara o banco com o modelo
+      atual e <strong>acrescenta</strong> o que falta — tabelas e colunas novas. Nada é
+      recriado e nada é apagado:</p>
+      <ul class="pequeno" style="padding-left:20px;margin:0">
+        <li>antes de qualquer mudança de estrutura, uma cópia automática é gerada;</li>
+        <li>colunas que saíram do sistema continuam no banco, apenas ignoradas;</li>
+        <li>os dados iniciais (OCDs, vistas, modelos de documento) só são inseridos quando a
+        tabela está vazia — suas edições nunca são sobrescritas.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}

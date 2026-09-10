@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% block titulo %}Signatários{% endblock %}
+
+{% block conteudo %}
+<h1>Signatários</h1>
+<p class="fraco pequeno">Quem assina as declarações. O signatário padrão é usado automaticamente
+nos processos novos. A imagem de assinatura, se enviada, entra no .docx acima da linha.</p>
+
+<div class="grade g2">
+  <div class="cartao">
+    <h2>Cadastrados</h2>
+    {% if lista %}
+    <div class="rolagem">
+    <table class="tabela">
+      <thead><tr><th>Nome</th><th>Cargo</th><th>Contato</th><th>Padrão</th><th class="acoes"></th></tr></thead>
+      <tbody>
+      {% for s in lista %}
+      <tr>
+        <td class="negrito">{{ s.nome }}
+          {% if not s.ativo %}<span class="badge off">inativo</span>{% endif %}
+          {% if s.assinatura_arquivo %}
+            <div class="linha-flex" style="margin-top:5px">
+              <img src="{{ url_for('arquivo', relativo=s.assinatura_arquivo) }}" alt=""
+                   style="max-height:34px">
+              <form method="post" action="{{ url_for('main.remover_assinatura', sid=s.id) }}"
+                    onsubmit="return confirm('Remover a imagem de assinatura deste signatário?')">
+                <button class="btn-ico perigo" title="Remover a imagem de assinatura"
+                        aria-label="Remover imagem">{{ ICO_EXCLUIR }}</button>
+              </form>
+            </div>
+          {% else %}
+            <div class="pequeno fraco" style="font-weight:400">sem imagem de assinatura</div>
+          {% endif %}
+        </td>
+        <td class="pequeno">{{ s.cargo }}</td>
+        <td class="pequeno">{{ s.email }}{% if s.email_alternativo %}<br>{{ s.email_alternativo }}{% endif %}
+          {% if s.telefone %}<br>{{ s.telefone }}{% endif %}</td>
+        <td>{% if s.padrao %}<span class="badge ok">padrão</span>{% endif %}</td>
+        <td class="acoes">
+          <div class="acoes-icones">
+            <a class="btn-ico" title="Editar" aria-label="Editar"
+               href="{{ url_for('main.signatarios', editar=s.id) }}">{{ ICO_EDITAR }}</a>
+            <form method="post" action="{{ url_for('main.excluir_signatario', sid=s.id) }}"
+                  onsubmit="return confirm('Remover este signatário?')">
+              <button class="btn-ico perigo" title="Remover" aria-label="Remover">
+                {{ ICO_EXCLUIR }}</button>
+            </form>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    </div>
+    {% else %}
+    <div class="vazio">Nenhum signatário cadastrado.</div>
+    {% endif %}
+  </div>
+
+  <div class="cartao">
+    <h2>{{ 'Editar signatário' if editar else 'Novo signatário' }}</h2>
+    <form method="post" enctype="multipart/form-data">
+      {% if editar %}<input type="hidden" name="id" value="{{ editar.id }}">{% endif %}
+      <div class="campos">
+        <div class="campo">
+          <label>Nome *</label>
+          <input type="text" name="nome" required value="{{ editar.nome if editar else '' }}">
+        </div>
+        <div class="grade g2">
+          <div class="campo">
+            <label>Cargo</label>
+            <input type="text" name="cargo" value="{{ editar.cargo if editar else '' }}">
+          </div>
+          <div class="campo">
+            <label>CPF</label>
+            <input type="text" name="cpf" value="{{ editar.cpf if editar else '' }}">
+          </div>
+        </div>
+        <div class="campo">
+          <label>E-mail</label>
+          <input type="text" name="email" value="{{ editar.email if editar else '' }}">
+        </div>
+        <div class="campo">
+          <label>E-mail alternativo</label>
+          <input type="text" name="email_alternativo" value="{{ editar.email_alternativo if editar else '' }}">
+          <span class="dica">Os dois e-mails saem nos documentos, como na planilha atual.</span>
+        </div>
+        <div class="campo">
+          <label>Telefone</label>
+          <input type="text" name="telefone" value="{{ editar.telefone if editar else '' }}">
+        </div>
+        <div class="campo">
+          <label>Imagem da assinatura</label>
+          <div class="identidade">
+            <div class="identidade-previa {{ 'vazia' if not (editar and editar.assinatura_arquivo) }}"
+                 style="width:180px;min-height:70px">
+              {% if editar and editar.assinatura_arquivo %}
+                <img src="{{ url_for('arquivo', relativo=editar.assinatura_arquivo) }}" alt="">
+              {% else %}<span>sem imagem</span>{% endif %}
+            </div>
+            <div class="identidade-texto">
+              <label class="botao-arquivo">
+                <input type="file" name="assinatura" accept="image/*">
+                <span>✍ {{ 'Trocar imagem' if editar and editar.assinatura_arquivo else 'Escolher imagem' }}</span>
+              </label>
+              <span class="dica">Entra logo acima da linha de assinatura no .docx.
+                PNG com fundo transparente. Salve o formulário para aplicar.</span>
+            </div>
+          </div>
+        </div>
+        <div class="linha-check">
+          <input type="checkbox" name="padrao" id="padrao" value="1" {{ 'checked' if editar and editar.padrao }}>
+          <label for="padrao">Signatário padrão</label>
+        </div>
+        <div class="linha-check">
+          <input type="checkbox" name="ativo" id="ativo" value="1" {{ 'checked' if (not editar) or editar.ativo }}>
+          <label for="ativo">Ativo</label>
+        </div>
+      </div>
+      <div class="barra-acoes mt16">
+        <button class="btn btn-primario">Salvar</button>
+        {% if editar %}<a class="btn" href="{{ url_for('main.signatarios') }}">Cancelar edição</a>{% endif %}
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

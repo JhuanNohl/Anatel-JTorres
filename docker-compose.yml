@@ -1,0 +1,33 @@
+services:
+  anatel:
+    build: .
+    image: anatel-certificacao:local
+    container_name: anatel-certificacao
+
+    # Rede do host: sem isso, o container enxergaria um IP interno do Docker
+    # (ex.: 172.17.0.2) em vez de 192.168.12.74 — e o QR code da aba Fotos
+    # (captura pelo celular) sairia com um endereço que ninguém na fábrica alcança.
+    # Só funciona assim em host Linux (confirmado para este servidor).
+    network_mode: host
+
+    restart: unless-stopped
+
+    env_file:
+      - .env
+
+    # instance/ é o único dado que importa: banco, fotos, anexos, documentos e
+    # backups. Fica FORA da imagem, num volume — assim uma atualização de
+    # código (rebuild da imagem) nunca troca nem apaga os dados de produção.
+    volumes:
+      - ./instance:/app/instance
+
+    healthcheck:
+      test: ["CMD", "python", "-c",
+             "import urllib.request; urllib.request.urlopen('http://127.0.0.1:5000/', timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+    # network_mode: host ignora "ports:" (a porta 5000 já fica exposta
+    # diretamente em 192.168.12.74:5000, sem publicação extra).

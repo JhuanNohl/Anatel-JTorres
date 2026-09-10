@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block titulo %}Editar {{ d.titulo }}{% endblock %}
+
+{% block conteudo %}
+{% include "processos/_abas.html" %}
+
+<div class="cartao">
+  <div class="cartao-titulo">
+    <h2>Editar texto do documento</h2>
+    <span class="badge neutro">v{{ d.versao }}</span>
+  </div>
+  <p class="pequeno fraco">Este é o texto <strong>já renderizado</strong> deste documento —
+  o que você mudar aqui vale só para ele. Para mudar o padrão de todos os processos, edite o
+  <a href="{{ url_for('documentos.templates') }}">modelo de documento</a>.
+  Salvar regera o arquivo .docx.</p>
+
+  <form method="post">
+    <div class="grade g3 mb16">
+      <div class="campo">
+        <label>Título</label>
+        <input type="text" name="titulo" value="{{ d.titulo }}">
+      </div>
+      <div class="campo">
+        <label>Cidade</label>
+        <input type="text" name="cidade" value="{{ d.cidade }}">
+      </div>
+      <div class="campo">
+        <label>Data</label>
+        <input type="date" name="data_documento" value="{{ d.data_documento.isoformat() }}">
+      </div>
+    </div>
+    <div class="campo mb16">
+      <label>Signatário</label>
+      <select name="signatario_id">
+        {% for s in signatarios %}
+        <option value="{{ s.id }}" {{ 'selected' if d.signatario_id == s.id }}>{{ s.nome }} — {{ s.cargo }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="campo">
+      <label>Texto</label>
+      <textarea name="corpo" class="codigo">{{ d.corpo }}</textarea>
+      <span class="dica">Uma linha em branco separa parágrafos.
+        <code>---EN---</code> divide o documento em duas colunas (português | inglês).</span>
+    </div>
+    <div class="barra-acoes mt16">
+      <button class="btn btn-primario">Salvar e regerar .docx</button>
+      <a class="btn" href="{{ url_for('documentos.ver', did=d.id) }}">Cancelar</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

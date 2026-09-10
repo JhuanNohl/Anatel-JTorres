@@ -1,0 +1,25 @@
+# Ambiente Python do Windows — a imagem cria o seu próprio via requirements.txt
+.venv/
+venv/
+__pycache__/
+**/__pycache__/
+*.pyc
+
+# Dados de produção: entram por volume (instance/), nunca dentro da imagem
+instance/
+
+# Dados do app antigo — já importados para instance/, ver LEIA-ME.txt
+dados-app-antigo/
+
+# Instalador/fluxo Windows, sem uso dentro do Docker
+*.bat
+
+# Documentação e imagens de origem que não são lidas pela aplicação em runtime
+# (as versões que a aplicação usa já estão dentro de instance/arquivos/identidade/)
+README.md
+LEIA-ME.txt
+*.png
+
+.env
+.git/
+.gitignore

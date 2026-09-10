@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block titulo %}{{ reg.nome if reg else 'Novo modelo' }}{% endblock %}
+
+{% block conteudo %}
+<h1>{{ reg.nome if reg else 'Novo modelo de documento' }}</h1>
+
+<form method="post">
+<div class="grade g2">
+  <div class="cartao">
+    <div class="campos">
+      <div class="campo">
+        <label>Nome do modelo *</label>
+        <input type="text" name="nome" required value="{{ reg.nome if reg else '' }}">
+      </div>
+      <div class="campo">
+        <label>Tipo de documento</label>
+        <select name="tipo">
+          {% for chave, dados in tipos.items() %}
+          <option value="{{ chave }}" {{ 'selected' if reg and reg.tipo == chave }}>{{ dados[0] }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="campo">
+        <label>Título que sai no documento</label>
+        <input type="text" name="titulo" value="{{ reg.titulo if reg else '' }}">
+      </div>
+      <div class="grade g2">
+        <div class="campo">
+          <label>Versão</label>
+          <input type="text" name="versao" value="{{ reg.versao if reg else '1.0' }}">
+        </div>
+        <div class="campo">
+          <label>&nbsp;</label>
+          <div class="linha-check">
+            <input type="checkbox" name="ativo" id="ativo" value="1" {{ 'checked' if (not reg) or reg.ativo }}>
+            <label for="ativo">Ativo</label>
+          </div>
+        </div>
+      </div>
+      <div class="campo">
+        <label>Observações (aparece na tela de geração)</label>
+        <textarea name="observacoes" rows="3">{{ reg.observacoes if reg else '' }}</textarea>
+      </div>
+    </div>
+    <div class="barra-acoes mt16">
+      <button class="btn btn-primario">Salvar modelo</button>
+      <a class="btn" href="{{ url_for('documentos.templates') }}">Cancelar</a>
+      {% if reg %}
+      <span class="direita"></span>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="cartao">
+    <div class="campo">
+      <label>Texto do documento</label>
+      <textarea name="corpo" class="codigo">{{ reg.corpo if reg else '' }}</textarea>
+      <span class="dica">
+        Linha em branco separa parágrafos. Use <code>{{ '{{ variavel }}' }}</code> para os dados —
+        a lista completa está na <a href="{{ url_for('documentos.templates') }}">tela de modelos</a>.
+      </span>
+    </div>
+  </div>
+</div>
+</form>
+
+{% if reg %}
+<form method="post" action="{{ url_for('documentos.template_excluir', tid=reg.id) }}"
+      onsubmit="return confirm('Excluir este modelo? Documentos já emitidos não são afetados.')">
+  <button class="btn btn-perigo">{{ ICO_EXCLUIR }} Excluir modelo</button>
+</form>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,17 @@
+{% extends "captura/_base.html" %}
+{% block titulo %}Sessão encerrada{% endblock %}
+
+{% block conteudo %}
+<div class="cel-veredito nao">
+  <span class="marca">!</span>
+  <div>
+    <strong>Esta sessão de fotos expirou</strong>
+    <span>por segurança, o endereço vale por tempo limitado</span>
+  </div>
+</div>
+<p class="cel-texto">Nada se perdeu: as fotos já enviadas estão no processo
+<strong>{{ s.processo.numero }}</strong>.</p>
+<p class="cel-texto">Para continuar, abra a aba <strong>Fotos</strong> do processo
+no computador e leia o QR code de novo — ele gera um endereço novo e você volta
+de onde parou.</p>
+{% endblock %}

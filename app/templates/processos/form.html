@@ -1,0 +1,241 @@
+{% extends "base.html" %}
+{% block titulo %}{{ 'Editar processo' if processo else 'Novo processo' }}{% endblock %}
+
+{% block conteudo %}
+<h1>{{ 'Editar ' + processo.numero if processo else 'Novo processo de certificação' }}</h1>
+{% if not processo %}
+<p class="fraco">O número do processo é gerado automaticamente. O checklist é montado conforme
+o tipo escolhido (renovação tem um roteiro próprio).</p>
+{% endif %}
+
+<form method="post">
+<div class="grade g2">
+  <div>
+    <div class="cartao">
+      <h3>Produto</h3>
+      <div class="campos">
+        <div class="campo">
+          <label>Modelo já cadastrado</label>
+          <select name="produto_id" id="produto_id" onchange="alternarNovo()">
+            {% if not processo %}<option value="novo">— cadastrar novo modelo —</option>{% endif %}
+            {% for pr in produtos %}
+            <option value="{{ pr.id }}"
+              {{ 'selected' if processo and processo.produto_id == pr.id }}>{{ pr }}</option>
+            {% endfor %}
+          </select>
+          <span class="dica">São {{ produtos|length }} modelos na base. Escolha um para reaproveitar a ficha técnica.</span>
+        </div>
+
+        <fieldset id="bloco_novo" {% if processo %}style="display:none"{% endif %}>
+          <legend>Novo modelo</legend>
+          <div class="campos">
+            <div class="campo">
+              <label>Modelo *</label>
+              <input type="text" name="modelo_novo" placeholder="Ex.: DG04-A1N21Q">
+            </div>
+            <div class="campo">
+              <label>Nome comercial</label>
+              <input type="text" name="nome_comercial_novo">
+            </div>
+            <div class="campo">
+              <label>Tipo de equipamento</label>
+              <input type="text" name="tipo_equipamento_novo" placeholder="Ex.: Controle de acesso Standalone">
+            </div>
+            <div class="campo">
+              <label>Natureza</label>
+              <select name="natureza_novo">
+                {% for n in NATUREZAS_PRODUTO %}<option value="{{ n }}">{{ n }}</option>{% endfor %}
+              </select>
+            </div>
+            <div class="campo">
+              <label>Fabricante / unidade fabril</label>
+              <select name="fabricante_novo">
+                {% for f in fabricantes %}<option value="{{ f.id }}">{{ f.nome }}</option>{% endfor %}
+              </select>
+            </div>
+            <div class="linha-check">
+              <input type="checkbox" name="fonte_externa_novo" id="fe" value="1">
+              <label for="fe">Alimentado por fonte externa (exige foto da fonte com os valores nominais)</label>
+            </div>
+            <div class="linha-check">
+              <input type="checkbox" name="classe_i_novo" id="ci" value="1">
+              <label for="ci">Equipamento Classe I (exige a frase de aterramento ABNT NBR 5410)</label>
+            </div>
+          </div>
+          <p class="dica mb0">Depois complete a ficha técnica em <em>Produtos / modelos</em>.</p>
+        </fieldset>
+      </div>
+    </div>
+
+    <div class="cartao">
+      <h3>Organismos</h3>
+      <div class="campos">
+        <div class="campo">
+          <label>OCD</label>
+          <select name="ocd_id">
+            <option value="">— selecione —</option>
+            {% for o in ocds %}
+            <option value="{{ o.id }}" {{ 'selected' if processo and processo.ocd_id == o.id }}>{{ o.nome }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="campo">
+          <label>Laboratório</label>
+          <select name="laboratorio_id">
+            <option value="">— selecione —</option>
+            {% for l in laboratorios %}
+            <option value="{{ l.id }}" {{ 'selected' if processo and processo.laboratorio_id == l.id }}>{{ l.nome }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="campo">
+          <label>Signatário dos documentos</label>
+          <select name="signatario_id">
+            <option value="">— usar o padrão —</option>
+            {% for s in signatarios %}
+            <option value="{{ s.id }}" {{ 'selected' if processo and processo.signatario_id == s.id }}>{{ s.nome }} — {{ s.cargo }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="campo">
+          <label>Referência da OCD</label>
+          <input type="text" name="referencia_ocd" placeholder="Ex.: OCP 69124"
+                 value="{{ processo.referencia_ocd if processo else '' }}">
+          <span class="dica">Usada na Declaração de Manutenção.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <div class="cartao">
+      <h3>Classificação e prazos</h3>
+      <div class="campos">
+        <div class="campo">
+          <label>Tipo de processo</label>
+          <select name="tipo_processo">
+            {% for t in TIPOS_PROCESSO %}
+            <option value="{{ t }}" {{ 'selected' if processo and processo.tipo_processo == t }}>{{ t }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="campo">
+          <label>Categoria ANATEL</label>
+          <select name="categoria_anatel">
+            {% for c in CATEGORIAS_ANATEL %}
+            <option value="{{ c }}" {{ 'selected' if processo and processo.categoria_anatel == c }}>{{ c }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="grade g2">
+          <div class="campo">
+            <label>Data de abertura</label>
+            <input type="date" name="data_abertura"
+                   value="{{ (processo.data_abertura if processo else hoje).isoformat() }}">
+          </div>
+          <div class="campo">
+            <label>Previsão de conclusão</label>
+            <input type="date" name="data_previsao"
+                   value="{{ processo.data_previsao.isoformat() if processo and processo.data_previsao else '' }}">
+          </div>
+        </div>
+        <div class="campo">
+          <label>Responsável</label>
+          <input type="text" name="responsavel" value="{{ processo.responsavel if processo else '' }}">
+        </div>
+        <div class="linha-check">
+          <input type="checkbox" name="requer_similaridade" id="rs" value="1"
+                 {{ 'checked' if processo and processo.requer_similaridade }}>
+          <label for="rs">Vai homologar modelos similares no mesmo código</label>
+        </div>
+        <div class="linha-check">
+          <input type="checkbox" name="requer_ciberseguranca" id="rc" value="1"
+                 {{ 'checked' if processo and processo.requer_ciberseguranca }}>
+          <label for="rc">Exige Declaração de Segurança Cibernética
+            <span class="dica">Regra da OCP-Teli: produtos com função de equipamento terminal
+            com conexão (direta ou indiretamente) à Internet, ou de equipamento de
+            infraestrutura de redes de telecomunicações.</span></label>
+        </div>
+      </div>
+    </div>
+
+    <div class="cartao">
+      <h3>Comercial e resultado</h3>
+      <div class="campos">
+        <div class="grade g2">
+          <div class="campo">
+            <label>Proposta OCD</label>
+            <input type="text" name="proposta_ocd" value="{{ processo.proposta_ocd if processo else '' }}">
+          </div>
+          <div class="campo">
+            <label>Proposta laboratório</label>
+            <input type="text" name="proposta_laboratorio"
+                   value="{{ processo.proposta_laboratorio if processo else '' }}">
+            <span class="dica">Vai colada na amostra.</span>
+          </div>
+        </div>
+        <div class="grade g3">
+          <div class="campo">
+            <label>Valor OCD</label>
+            <input type="text" name="valor_ocd" value="{{ processo.valor_ocd if processo and processo.valor_ocd else '' }}">
+          </div>
+          <div class="campo">
+            <label>Valor laboratório</label>
+            <input type="text" name="valor_laboratorio" value="{{ processo.valor_laboratorio if processo and processo.valor_laboratorio else '' }}">
+          </div>
+          <div class="campo">
+            <label>Outros custos</label>
+            <input type="text" name="valor_outros" value="{{ processo.valor_outros if processo and processo.valor_outros else '' }}">
+          </div>
+        </div>
+        <div class="grade g2">
+          <div class="campo">
+            <label>Nº de homologação</label>
+            <input type="text" name="numero_homologacao" value="{{ processo.numero_homologacao if processo else '' }}">
+          </div>
+          <div class="campo">
+            <label>Certificado (CCT)</label>
+            <input type="text" name="certificado_numero" value="{{ processo.certificado_numero if processo else '' }}">
+          </div>
+        </div>
+        <div class="grade g2">
+          <div class="campo">
+            <label>Validade do certificado</label>
+            <input type="date" name="certificado_validade"
+                   value="{{ processo.certificado_validade.isoformat() if processo and processo.certificado_validade else '' }}">
+          </div>
+          <div class="campo">
+            <label>Data de conclusão</label>
+            <input type="date" name="data_conclusao"
+                   value="{{ processo.data_conclusao.isoformat() if processo and processo.data_conclusao else '' }}">
+          </div>
+        </div>
+        <div class="campo">
+          <label>Relatório de ensaio</label>
+          <input type="text" name="relatorio_ensaio" value="{{ processo.relatorio_ensaio if processo else '' }}">
+        </div>
+        <div class="campo">
+          <label>Observações</label>
+          <textarea name="observacoes">{{ processo.observacoes if processo else '' }}</textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="barra-acoes">
+  <button class="btn btn-primario" type="submit">{{ 'Salvar alterações' if processo else 'Criar processo' }}</button>
+  <a class="btn" href="{{ url_for('processos.detalhe', pid=processo.id) if processo else url_for('processos.lista') }}">Cancelar</a>
+</div>
+</form>
+
+<script>
+function alternarNovo(){
+  var sel = document.getElementById('produto_id');
+  var bloco = document.getElementById('bloco_novo');
+  if (!bloco) return;
+  bloco.style.display = (sel.value === 'novo') ? '' : 'none';
+}
+alternarNovo();
+</script>
+{% endblock %}

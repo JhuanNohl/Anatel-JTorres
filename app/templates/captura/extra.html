@@ -1,0 +1,34 @@
+{% extends "captura/_base.html" %}
+{% block titulo %}Foto complementar{% endblock %}
+
+{% block conteudo %}
+<h1 class="cel-titulo">Foto complementar</h1>
+<p class="cel-texto">Fora do roteiro: um detalhe que a OCD pediu, um acessório,
+uma marcação. Ela entra no processo como foto extra.</p>
+
+<form method="post" enctype="multipart/form-data" class="cel-camera" data-envio>
+  <label class="cel-campo">Legenda (opcional)
+    <input type="text" name="legenda" placeholder="Ex.: detalhe do conector traseiro">
+  </label>
+  <label class="cel-botao">
+    <input type="file" name="foto" accept="image/*" capture="environment" hidden
+           onchange="if(this.files.length){this.form.submit();}">
+    <span class="ico">📷</span>
+    <span class="rot">Tirar foto complementar</span>
+  </label>
+  <div class="cel-enviando">Enviando…</div>
+</form>
+
+{% if extras %}
+<h2 class="cel-secao">Complementares desta bancada</h2>
+<div class="cel-grade">
+  {% for foto in extras %}
+  <img src="{{ url_for('arquivo', relativo=foto.arquivo) }}" alt="{{ foto.legenda }}">
+  {% endfor %}
+</div>
+{% endif %}
+
+<nav class="cel-nav">
+  <a href="{{ url_for('captura.fim', token=s.token) }}">Voltar ao resumo</a>
+</nav>
+{% endblock %}

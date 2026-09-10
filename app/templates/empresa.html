@@ -1,0 +1,269 @@
+{% extends "base.html" %}
+{% block titulo %}Dados da empresa{% endblock %}
+
+{% block conteudo %}
+<h1>Dados da empresa</h1>
+<p class="fraco pequeno">Estes dados alimentam o cabeçalho e o corpo de todas as declarações.
+Confira antes de emitir o primeiro documento.</p>
+
+{% macro cartao_imagem(qual, titulo, arquivo, icone, onde, sem_ela, dica) %}
+<div class="cartao">
+  <div class="cartao-titulo">
+    <h2>{{ titulo }}</h2>
+    <span class="badge {{ 'ok' if arquivo else 'warn' }}">
+      {{ 'enviado' if arquivo else 'não enviado' }}</span>
+  </div>
+  <div class="identidade">
+    <div class="identidade-previa {{ 'vazia' if not arquivo }}">
+      {% if arquivo %}
+        <img src="{{ url_for('arquivo', relativo=arquivo) }}" alt="{{ titulo }}">
+      {% else %}<span>sem imagem</span>{% endif %}
+    </div>
+    <div class="identidade-texto">
+      <p class="pequeno mb8">{{ onde if arquivo else sem_ela }}</p>
+      <div class="barra-acoes">
+        <form method="post" action="{{ url_for('main.empresa_imagem', qual=qual) }}"
+              enctype="multipart/form-data">
+          <label class="botao-arquivo">
+            <input type="file" name="imagem" accept="image/*" onchange="this.form.submit()">
+            <span>{{ icone }} {{ 'Trocar imagem' if arquivo else 'Escolher imagem' }}</span>
+          </label>
+          <noscript><button class="btn btn-mini btn-primario">Enviar</button></noscript>
+        </form>
+        {% if arquivo %}
+        <form method="post" action="{{ url_for('main.empresa_imagem_remover', qual=qual) }}"
+              onsubmit="return confirm('Remover esta imagem?')">
+          <button class="btn-ico perigo" title="Remover esta imagem" aria-label="Remover">
+            {{ ICO_EXCLUIR }}</button>
+        </form>
+        {% endif %}
+      </div>
+      <span class="dica">{{ dica }}</span>
+    </div>
+  </div>
+</div>
+{% endmacro %}
+
+<div class="grade g2">
+  {{ cartao_imagem(
+      'logotipo', 'Logotipo', reg.logo_arquivo, '🖼',
+      'É esta imagem que aparece no canto superior esquerdo de todas as declarações, no .docx e na impressão.',
+      'Sem logotipo, o cabeçalho das declarações mostra o nome da empresa em texto. Envie a imagem para que ela apareça no lugar.',
+      'A imagem sobe assim que você escolhe o arquivo. Melhor resultado: PNG com fundo transparente, na horizontal, com uns 600 x 180 pixels.') }}
+
+  {{ cartao_imagem(
+      'selo', 'Selo ANATEL', reg.selo_anatel_arquivo, '🔰',
+      'Aparece à direita de cada etiqueta na folha de selos das amostras, com o número de homologação abaixo.',
+      'A folha de selos das amostras sai sem a imagem do selo. Envie o PNG do selo ANATEL para que ele apareça à direita de cada etiqueta.',
+      'PNG com fundo transparente, na horizontal. O número de homologação é escrito pelo sistema, embaixo do selo — não precisa estar na imagem.') }}
+</div>
+
+<form method="post">
+<div class="grade g2">
+  <div class="cartao">
+    <h3>Identificação</h3>
+    <div class="campos">
+      <div class="campo">
+        <label>Razão social *</label>
+        <input type="text" name="razao_social" required value="{{ reg.razao_social }}">
+      </div>
+      <div class="grade g2">
+        <div class="campo">
+          <label>Nome fantasia</label>
+          <input type="text" name="nome_fantasia" value="{{ reg.nome_fantasia }}">
+        </div>
+        <div class="campo">
+          <label>CNPJ</label>
+          <input type="text" name="cnpj" value="{{ reg.cnpj }}">
+        </div>
+      </div>
+      <div class="campo">
+        <label>Inscrição estadual</label>
+        <input type="text" name="inscricao_estadual" value="{{ reg.inscricao_estadual }}">
+      </div>
+    </div>
+  </div>
+
+  <div class="cartao">
+    <h3>Endereço e contato</h3>
+    <div class="campos">
+      <div class="campo">
+        <label>Endereço</label>
+        <input type="text" name="endereco" value="{{ reg.endereco }}">
+      </div>
+      <div class="grade g2">
+        <div class="campo">
+          <label>Bairro</label>
+          <input type="text" name="bairro" value="{{ reg.bairro }}">
+        </div>
+        <div class="campo">
+          <label>CEP</label>
+          <input type="text" name="cep" value="{{ reg.cep }}">
+        </div>
+        <div class="campo">
+          <label>Cidade</label>
+          <input type="text" name="cidade" value="{{ reg.cidade }}">
+        </div>
+        <div class="campo">
+          <label>UF</label>
+          <input type="text" name="uf" maxlength="2" value="{{ reg.uf }}">
+        </div>
+      </div>
+      <div class="grade g2">
+        <div class="campo">
+          <label>Telefone</label>
+          <input type="text" name="telefone" value="{{ reg.telefone }}">
+        </div>
+        <div class="campo">
+          <label>Site</label>
+          <input type="text" name="site" value="{{ reg.site }}">
+        </div>
+        <div class="campo">
+          <label>E-mail</label>
+          <input type="text" name="email" value="{{ reg.email }}">
+        </div>
+        <div class="campo">
+          <label>SAC / assistência técnica</label>
+          <input type="text" name="sac" value="{{ reg.sac }}">
+        </div>
+      </div>
+      <div class="grade g2">
+        <div class="campo">
+          <label>Prazo de garantia</label>
+          <input type="text" name="prazo_garantia" value="{{ reg.prazo_garantia }}">
+          <span class="dica">Usado na declaração de direitos e garantias.</span>
+        </div>
+        <div class="campo">
+          <label>Cidade da assinatura</label>
+          <input type="text" name="cidade_assinatura" value="{{ reg.cidade_assinatura }}">
+        </div>
+      </div>
+      <div class="campo">
+        <label>Observações</label>
+        <textarea name="observacoes" rows="2">{{ reg.observacoes }}</textarea>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div class="cartao">
+  <h3>Prévia do cabeçalho dos documentos</h3>
+  <div class="folha" style="padding:20px;box-shadow:none;max-width:none;margin:0">
+    <div class="cabecalho-doc">
+      <div>
+        {% if reg.logo_arquivo %}
+        <img src="{{ url_for('arquivo', relativo=reg.logo_arquivo) }}" alt="">
+        {% else %}<strong style="color:var(--cinza)">{{ reg.nome_fantasia or reg.razao_social }}</strong>{% endif %}
+      </div>
+      <div class="endereco">
+        {% for linha in reg.cabecalho %}{{ linha }}<br>{% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="barra-acoes">
+  <button class="btn btn-primario">Salvar</button>
+</div>
+</form>
+
+<div class="cartao" id="documentos">
+  <div class="cartao-titulo">
+    <h2>Documentos da empresa</h2>
+    <span class="badge {{ 'ok' if total_documentos else 'off' }}">{{ total_documentos }}</span>
+  </div>
+  <p class="pequeno fraco">Documentos que valem para <strong>todos os processos</strong> —
+  cartão CNPJ, contrato social, certificado ISO do fabricante. Ficam guardados aqui uma vez só;
+  a OCD nem sempre pede, e quando pedir você inclui no pacote com um clique
+  (aba <em>Pacote OCD</em> do processo). Não entram mais na lista de pendências.</p>
+
+  {% if documentos %}
+  <div class="rolagem">
+  <table class="tabela">
+    <thead><tr><th>Documento</th><th>Categoria</th><th class="num">Emissão</th>
+      <th class="num">Validade</th><th class="acoes"></th></tr></thead>
+    <tbody>
+      {% for categoria in categorias_doc if categoria in documentos %}
+        {% for d in documentos[categoria] %}
+        <tr>
+          <td>
+            <a href="{{ url_for('arquivo', relativo=d.arquivo) }}" target="_blank">{{ d.titulo }}</a>
+            {% if d.numero %} <span class="chip">{{ d.numero }}</span>{% endif %}
+            <br><small class="fraco">{{ d.nome_original }} · {{ d.tamanho|tamanho }}</small>
+            {% if d.observacao %}<br><small>{{ d.observacao }}</small>{% endif %}
+          </td>
+          <td class="pequeno">{{ d.categoria }}</td>
+          <td class="num pequeno">{{ d.emissao|data }}</td>
+          <td class="num pequeno">
+            {% if d.validade %}
+              <span class="{{ 'alerta-critico' if d.alerta in ['vencido','critico'] }}">
+                {{ d.validade|data }}</span>
+              {% if d.alerta == 'vencido' %}<br><span class="badge erro">vencido</span>
+              {% elif d.alerta == 'critico' %}<br><span class="badge warn">vence em {{ d.dias_para_vencer }} d</span>
+              {% endif %}
+            {% else %}-{% endif %}
+          </td>
+          <td class="acoes">
+            <div class="acoes-icones">
+              <a class="btn-ico" title="Baixar o arquivo" aria-label="Baixar"
+                 href="{{ url_for('download', relativo=d.arquivo) }}">{{ ICO_BAIXAR }}</a>
+              <form method="post" action="{{ url_for('main.empresa_documento_excluir', did=d.id) }}"
+                    onsubmit="return confirm('Remover este documento?')">
+                <button class="btn-ico perigo" title="Remover o documento" aria-label="Remover">
+                  {{ ICO_EXCLUIR }}</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% else %}
+  <div class="vazio"><span class="ico">📁</span>Nenhum documento guardado ainda.</div>
+  {% endif %}
+
+  <details class="bloco mt16" {{ 'open' if not documentos }}>
+    <summary>Guardar um documento</summary>
+    <form method="post" action="{{ url_for('main.empresa_documento') }}"
+          enctype="multipart/form-data">
+      <div class="grade g3">
+        <div class="campo">
+          <label>Categoria</label>
+          <select name="categoria">
+            {% for c in categorias_doc %}<option value="{{ c }}">{{ c }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="campo" style="grid-column:span 2">
+          <label>Arquivo(s)</label>
+          <input type="file" name="arquivos" multiple required>
+        </div>
+        <div class="campo" style="grid-column:span 2">
+          <label>Título</label>
+          <input type="text" name="titulo" placeholder="Ex.: ISO 9001 ZKTeco Co., Ltd. 2026">
+        </div>
+        <div class="campo">
+          <label>Número</label>
+          <input type="text" name="numero">
+        </div>
+        <div class="campo">
+          <label>Emissão</label>
+          <input type="date" name="emissao">
+        </div>
+        <div class="campo">
+          <label>Validade</label>
+          <input type="date" name="validade">
+          <span class="dica">O sistema avisa quando estiver perto de vencer.</span>
+        </div>
+        <div class="campo">
+          <label>Observação</label>
+          <input type="text" name="observacao">
+        </div>
+      </div>
+      <button class="btn btn-primario mt16">Guardar documento</button>
+    </form>
+  </details>
+</div>
+{% endblock %}

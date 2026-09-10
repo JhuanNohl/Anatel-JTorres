@@ -1,0 +1,66 @@
+{% extends "captura/_base.html" %}
+{% block titulo %}Resumo{% endblock %}
+
+{% block conteudo %}
+{% if progresso.faltando %}
+<div class="cel-veredito nao">
+  <span class="marca">!</span>
+  <div>
+    <strong>Faltam {{ progresso.faltando }} de {{ progresso.total }}</strong>
+    <span>vistas obrigatórias sem foto</span>
+  </div>
+</div>
+{% else %}
+<div class="cel-veredito ok">
+  <span class="marca">✓</span>
+  <div>
+    <strong>Roteiro completo</strong>
+    <span>as {{ progresso.total }} vistas obrigatórias têm foto</span>
+  </div>
+</div>
+{% endif %}
+
+{% if mapa.pendentes %}
+<h2 class="cel-secao">Ainda falta</h2>
+{% for item in mapa.pendentes %}
+<a class="cel-item falta" href="{{ url_for('captura.vista', token=s.token, vid=item.vista.id) }}">
+  <span class="nome">{{ item.vista.nome }}</span>
+  <span class="marca">obrigatória</span>
+</a>
+{% endfor %}
+{% endif %}
+
+{% if mapa.opcionais_pendentes %}
+<h2 class="cel-secao">Opcionais, se fizer sentido</h2>
+{% for item in mapa.opcionais_pendentes %}
+<a class="cel-item" href="{{ url_for('captura.vista', token=s.token, vid=item.vista.id) }}">
+  <span class="nome">{{ item.vista.nome }}</span>
+  <span class="marca">opcional</span>
+</a>
+{% endfor %}
+{% endif %}
+
+<h2 class="cel-secao">Já fotografado</h2>
+{% for item in mapa.itens if item.fotos %}
+<a class="cel-item" href="{{ url_for('captura.vista', token=s.token, vid=item.vista.id) }}">
+  <img src="{{ url_for('arquivo', relativo=item.fotos[0].arquivo) }}" alt="">
+  <span class="nome">{{ item.vista.nome }}
+    {% if item.fotos|length > 1 %}<small>{{ item.fotos|length }} fotos</small>{% endif %}
+    {% for foto in item.fotos if foto.aprovada is sameas false %}
+    <small class="ressalva">com ressalva</small>
+    {% endfor %}
+  </span>
+</a>
+{% endfor %}
+
+<div class="cel-acoes">
+  <a class="cel-botao-linha" href="{{ url_for('captura.extra', token=s.token) }}">
+    Adicionar foto complementar</a>
+  {% if extras %}
+  <p class="cel-nota">{{ extras|length }} foto(s) complementar(es) já enviada(s).</p>
+  {% endif %}
+</div>
+
+<p class="cel-nota">Pode fechar esta página. Para continuar depois, leia o mesmo
+QR code na tela do computador — você volta exatamente aqui.</p>
+{% endblock %}

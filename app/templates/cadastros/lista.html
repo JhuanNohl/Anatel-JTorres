@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block titulo %}{{ cfg.titulo }}{% endblock %}
+
+{% block conteudo %}
+<div class="linha-flex mb16">
+  <div>
+    <h1 class="mb0">{{ cfg.titulo }}</h1>
+    <p class="fraco pequeno mb0">{{ cfg.descricao }}</p>
+  </div>
+  <a class="btn btn-primario direita" href="{{ url_for('cadastros.form', slug=slug) }}">＋ Novo</a>
+</div>
+
+<div class="cartao">
+  <form class="filtros" method="get">
+    <div class="campo" style="flex:1;min-width:220px">
+      <label>Buscar</label>
+      <input type="search" name="q" value="{{ q }}" placeholder="Digite parte do nome…">
+    </div>
+    <button class="btn btn-escuro">Filtrar</button>
+    {% if q %}<a class="btn" href="{{ url_for('cadastros.lista', slug=slug) }}">Limpar</a>{% endif %}
+  </form>
+
+  {% if itens %}
+  <div class="rolagem">
+  <table class="tabela">
+    <thead>
+      <tr>
+        {% for campo, rotulo in cfg.colunas %}<th>{{ rotulo }}</th>{% endfor %}
+        <th class="acoes"></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for reg in itens %}
+      <tr>
+        {% for campo, rotulo in cfg.colunas %}
+        {% set valor = reg[campo] %}
+        <td>
+          {% if loop.first %}
+            <a href="{{ url_for('cadastros.form', slug=slug, rid=reg.id) }}" class="negrito">{{ valor }}</a>
+          {% elif valor is sameas true %}<span class="badge ok">sim</span>
+          {% elif valor is sameas false %}<span class="badge off">não</span>
+          {% elif campo == 'cor' %}
+            <span class="badge" style="{{ reg.estilo }}">{{ reg.nome }}</span>
+            <code class="pequeno fraco">{{ reg.hex|upper }}</code>
+          {% else %}<span class="pequeno">{{ valor or '-' }}</span>{% endif %}
+        </td>
+        {% endfor %}
+        <td class="acoes">
+          <div class="acoes-icones">
+            <a class="btn-ico" title="Editar" aria-label="Editar"
+               href="{{ url_for('cadastros.form', slug=slug, rid=reg.id) }}">{{ ICO_EDITAR }}</a>
+            <form method="post" action="{{ url_for('cadastros.excluir', slug=slug, rid=reg.id) }}"
+                  onsubmit="return confirm('Excluir este registro?')">
+              <button class="btn-ico perigo" title="Excluir" aria-label="Excluir">
+                {{ ICO_EXCLUIR }}</button>
+            </form>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% else %}
+  <div class="vazio">Nenhum registro.
+    <a href="{{ url_for('cadastros.form', slug=slug) }}">Cadastrar o primeiro</a></div>
+  {% endif %}
+</div>
+{% endblock %}

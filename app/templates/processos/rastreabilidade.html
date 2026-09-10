@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block titulo %}Rastreabilidade · {{ p.numero }}{% endblock %}
+
+{% block conteudo %}
+{% include "processos/_abas.html" %}
+
+<div class="grade g2">
+  <div class="cartao">
+    <h2>Dados de rastreabilidade da amostra</h2>
+    <p class="pequeno fraco">Marque quais dados identificam a amostra enviada para ensaios.
+    Exatamente estes itens saem na <strong>Declaração de Rastreabilidade</strong> e na
+    <strong>Declaração de Manutenção</strong>, com as caixas ☒ / ☐.</p>
+
+    <form method="post">
+      {% set campos = [
+        ('serie','Número(s) de Série', p.rast_serie, p.rast_serie_valor, 'Ex.: ZK2600A0001234'),
+        ('lote','Número do Lote', p.rast_lote, p.rast_lote_valor, 'Ex.: ES013FK_v1.0'),
+        ('data_fab','Data de Fabricação', p.rast_data_fab, p.rast_data_fab_valor, 'Ex.: 08/2026'),
+        ('mac','Número IMEI/MAC', p.rast_mac, p.rast_mac_valor, 'Ex.: E10000042574'),
+        ('outros','Outros', p.rast_outros, p.rast_outros_valor, 'Ex.: DTM with RF Line, DTM without RF Line')
+      ] %}
+      {% for chave, rotulo, marcado, valor, exemplo in campos %}
+      <fieldset>
+        <legend>{{ rotulo }}</legend>
+        <div class="linha-check mb8">
+          <input type="checkbox" name="rast_{{ chave }}" id="c_{{ chave }}" value="1" {{ 'checked' if marcado }}>
+          <label for="c_{{ chave }}">Marcar este item na declaração</label>
+        </div>
+        <div class="campo">
+          <input type="text" name="rast_{{ chave }}_valor" value="{{ valor or '' }}" placeholder="{{ exemplo }}">
+        </div>
+      </fieldset>
+      {% endfor %}
+      <button class="btn btn-primario">Salvar rastreabilidade</button>
+    </form>
+  </div>
+
+  <div>
+    <div class="cartao">
+      <h2>Quem é quem neste processo</h2>
+      <p class="pequeno fraco">São dois papéis, e a OCD confere se batem com a etiqueta
+      da amostra. Já houve pergunta por causa disso.</p>
+      <div class="dados">
+        <div class="item"><div class="rot">Solicitante da certificação</div>
+          <div class="val">{{ empresa_atual.razao_social }}</div></div>
+        <div class="item"><div class="rot">Detentor da tecnologia e fabricante</div>
+          <div class="val">{{ p.fabricante_na_etiqueta or '—' }}
+            {% if p.produto.fabricante and p.produto.fabricante.pais %}
+            <br><small class="fraco">País de origem: {{ p.produto.fabricante.pais }}</small>
+            {% endif %}</div></div>
+      </div>
+      {% if not p.fabricante_coerente %}
+      <div class="aviso atencao mt16">
+        <span>!</span>
+        <div><strong>Este modelo está sem fabricante cadastrado.</strong>
+          A etiqueta da amostra vai imprimir
+          <strong>{{ empresa_atual.razao_social }}</strong> como fabricante, enquanto a
+          declaração aponta a unidade fabril — e a OCD vai perguntar qual dos dois vale.
+          <a href="{{ url_for('cadastros.form', slug='produtos', rid=p.produto_id) }}">Cadastre
+          o fabricante do {{ p.produto.modelo }}</a>.</div>
+      </div>
+      {% else %}
+      <p class="pequeno fraco mb0">A etiqueta da amostra imprime
+      <strong>{{ p.fabricante_na_etiqueta }}</strong> — o mesmo nome da unidade fabril
+      declarada. É assim que a OCD espera encontrar.</p>
+      {% endif %}
+    </div>
+
+    <div class="cartao">
+      <h2>Como vai sair no documento</h2>
+      <div class="folha" style="padding:20px;box-shadow:none;max-width:none">
+        <p class="par">• A rastreabilidade da(s) amostra(s) encaminhada para ensaios pode ser
+        verificada por UM ou mais de um dos dados já identificados na(s) amostra(s) abaixo:</p>
+        <p class="par">{% for nome, marcado, valor in p.rastreabilidade_itens %}{{ '☒' if marcado else '☐' }}  {{ nome }}: {{ valor or '' }}
+{% endfor %}</p>
+      </div>
+    </div>
+
+    <div class="cartao">
+      <h3>Lembretes do fluxo</h3>
+      <ul class="pequeno" style="padding-left:18px;margin:0">
+        <li>A rastreabilidade precisa <strong>bater exatamente</strong> com o que está gravado
+        ou etiquetado na amostra física.</li>
+        <li>Cole na amostra o número da proposta do laboratório
+        ({{ p.proposta_laboratorio or 'não informado' }}) e o número de rastreabilidade.</li>
+        <li>São necessárias <strong>2 amostras</strong>: 01 comercial + 01 radiada.</li>
+        <li>Cadastre cada amostra na aba <a href="{{ url_for('processos.amostras', pid=p.id) }}">Amostras e selos</a>
+        para gerar a folha de selos de identificação.</li>
+      </ul>
+    </div>
+
+    <div class="cartao">
+      <div class="cartao-titulo">
+        <h3>Gerar a declaração</h3>
+      </div>
+      <div class="barra-acoes">
+        <a class="btn btn-primario" href="{{ url_for('documentos.gerar', pid=p.id, tipo='rastreabilidade') }}">
+          Declaração de Rastreabilidade</a>
+        <a class="btn" href="{{ url_for('documentos.gerar', pid=p.id, tipo='manutencao') }}">
+          Declaração de Manutenção</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

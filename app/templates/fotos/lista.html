@@ -1,0 +1,235 @@
+{% extends "base.html" %}
+{% block titulo %}Fotos · {{ p.numero }}{% endblock %}
+
+{% block conteudo %}
+{% include "processos/_abas.html" %}
+
+<div class="area-fotos" data-fotos data-envio="{{ url_for('fotos.enviar', pid=p.id) }}">
+
+<div class="cartao">
+  <div class="cartao-titulo">
+    <h2>Roteiro de fotos</h2>
+    <div class="barra-acoes">
+      <a class="btn btn-mini" target="_blank" href="{{ url_for('fotos.dossie', pid=p.id) }}">Dossiê para imprimir</a>
+      <a class="btn btn-mini" href="{{ url_for('cadastros.lista', slug='vistas') }}">
+        {{ ICO_EDITAR }} Editar roteiro</a>
+    </div>
+  </div>
+
+  {% if faltando %}
+  <div class="aviso erro" data-resumo>
+    <span>!</span>
+    <div>
+      <strong>Faltam {{ faltando|length }} de {{ total_obrigatorias }} vistas obrigatórias:</strong>
+      {% for v in faltando %}<a href="#vista-{{ v.codigo }}" class="chip">{{ v.nome }}</a>{% endfor %}
+    </div>
+  </div>
+  {% else %}
+  <div class="aviso ok" data-resumo><span>✓</span>
+    <div>Todas as {{ total_obrigatorias }} vistas obrigatórias têm foto.</div></div>
+  {% endif %}
+
+  <p class="pequeno fraco mb0">
+    Cada cartão mostra um <strong>desenho de exemplo</strong> com a direção da câmera.
+    <strong>Toda foto leva a régua ao lado do produto</strong> — uma régua só, deitada ou em pé,
+    como na sua bancada. A frontal dá Largura x Altura e a lateral dá a Profundidade.
+    O resto que a OCD sempre cobra: fundo neutro, foco nítido, sem reflexo na etiqueta, e a
+    placa fotografada dos dois lados, <strong>com e sem blindagem</strong>.
+    Quando uma vista não faz sentido para este produto — placa sem blindagem, produto sem
+    acessórios — use o botão <strong>N/A</strong> no rodapé do cartão: ela deixa de ser
+    obrigatória e para de travar o pacote da OCD.
+  </p>
+  <p class="pequeno fraco mb0" style="margin-top:8px">
+    <strong>A foto sobe sozinha</strong> assim que você escolhe o arquivo — ou arrasta a imagem
+    para cima do cartão. A página não recarrega, então dá para ir preenchendo vários cartões
+    sem perder nada pelo caminho.
+  </p>
+</div>
+
+<div class="cartao" id="celular">
+  <div class="cartao-titulo">
+    <h2>Fotografar pelo celular</h2>
+    {% if sessao %}
+    <span class="badge ok">sessão aberta · vale por {{ sessao.horas_restantes }} h</span>
+    {% endif %}
+  </div>
+
+  {% if sessao %}
+  <div class="qr-cartao">
+    <div>{{ qr|safe }}</div>
+    <div class="qr-lado">
+      <p class="mb0"><strong>Aponte a câmera do celular para o código.</strong>
+      A tela do celular pede <strong>uma vista por vez</strong>, com o desenho de exemplo,
+      e confere cada foto na hora: se sair escura, tremida, estourada ou repetida, ela avisa
+      na mesma tela e você refaz sem sair do lugar.</p>
+      <code class="qr-endereco">{{ endereco_celular }}</code>
+      <p class="pequeno fraco mb0">Dá para parar no meio e continuar depois — ou até trocar de
+      aparelho: o celular sempre volta para a primeira vista que falta. Enviadas nesta sessão:
+      <strong>{{ sessao.fotos_enviadas or 0 }}</strong>{% if sessao.fotos_recusadas %},
+      sendo {{ sessao.fotos_recusadas }} recusada(s) na conferência{% endif %}.</p>
+      <div class="barra-acoes mt16">
+        <form method="post" action="{{ url_for('captura.abrir', pid=p.id) }}">
+          <button class="btn btn-mini">Renovar prazo</button>
+        </form>
+        <form method="post" action="{{ url_for('captura.encerrar', pid=p.id) }}"
+              onsubmit="return confirm('Encerrar a sessão? O endereço do celular para de abrir.')">
+          <button class="btn btn-mini">Encerrar sessão</button>
+        </form>
+        <span class="pequeno fraco">O endereço só funciona dentro da rede da empresa
+        e expira sozinho.</span>
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <div class="qr-cartao">
+    <div class="qr-lado">
+      <p class="mb0">Gera um QR code para <strong>fotografar com o celular na bancada</strong>:
+      uma vista por vez, com o desenho de exemplo na tela, e cada foto conferida na hora
+      (escura, tremida, estourada, pequena demais ou repetida). Dá para parar e continuar
+      de onde parou.</p>
+      <div class="barra-acoes mt16">
+        <form method="post" action="{{ url_for('captura.abrir', pid=p.id) }}">
+          <button class="btn btn-primario">Gerar QR para o celular</button>
+        </form>
+        <span class="pequeno fraco">Nada é enviado para fora: a conferência roda
+        neste servidor.</span>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+{% for grupo, vistas in grupos %}
+<h2 style="margin:22px 0 12px">{{ grupo }}</h2>
+<div class="vistas">
+  {% for v in vistas %}
+  {% set minhas = por_vista.get(v.id, []) %}
+  {% set na = v.id in nao_aplicaveis %}
+  <div class="vista {{ 'dispensada' if na else ('pronta' if minhas else ('pendente' if v.obrigatoria else '')) }}"
+       id="vista-{{ v.codigo }}"
+       data-vista-cartao
+       data-vista="{{ v.id }}"
+       data-obrigatoria="{{ 1 if v.obrigatoria else 0 }}"
+       data-na="{{ 1 if na else 0 }}">
+    <div class="topo-vista">
+      <div style="flex:1">
+        <h3>{{ v.nome }}</h3>
+        <div class="pequeno fraco">
+          {% if na %}<span class="badge neutro">não aplicável</span>
+          {% elif v.obrigatoria %}
+            <span class="badge {{ 'ok' if minhas else 'warn' }}" data-selo>obrigatória</span>
+          {% else %}<span class="badge off">opcional</span>{% endif %}
+          <span class="badge neutro" data-contagem {{ 'hidden' if not minhas }}>
+            {{ minhas|length }} foto{{ 's' if minhas|length != 1 }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="exemplo">{{ desenho(v.codigo)|safe }}</div>
+
+    <div class="corpo">
+      {{ v.descricao }}
+      {% if v.dica %}<div class="dica-vista"><strong>Atenção:</strong> {{ v.dica }}</div>{% endif %}
+      {% if na %}
+      <div class="dica-vista" style="background:#f2f4f5;border-left-color:#b6bbbe">
+        <strong>Não aplicável neste processo.</strong>
+        {% if motivos.get(v.id) %}<br>{{ motivos[v.id] }}{% endif %}
+      </div>
+      {% endif %}
+    </div>
+
+    {% if minhas %}
+    <div class="miniaturas">
+      {% for f in minhas %}
+      <div class="mini">
+        <a href="{{ url_for('arquivo', relativo=f.arquivo) }}" target="_blank">
+          <img src="{{ url_for('arquivo', relativo=f.arquivo) }}" alt="{{ f.legenda }}">
+        </a>
+        <form method="post" action="{{ url_for('fotos.excluir', pid=p.id, fid=f.id) }}"
+              class="js-excluir" onsubmit="return confirm('Remover esta foto?')">
+          <button class="x" title="Remover esta foto" aria-label="Remover">
+            {{ ICO_EXCLUIR }}</button>
+        </form>
+        <small>{{ f.largura }}×{{ f.altura }}</small>
+        {# veredito da vistoria: so aparece quando a foto passou por ela #}
+        {% if f.aprovada is not none %}
+        <small class="selo-veredito {{ 'ok' if f.aprovada else 'nao' }}"
+               title="{{ f.veredito }}{% if f.origem == 'celular' %} · enviada pelo celular{% endif %}">
+          {{ 'conferida' if f.aprovada and not f.avisos else
+             ('com ressalva' if f.aprovada else 'reprovada') }}</small>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="rodape">
+      <form method="post" action="{{ url_for('fotos.enviar', pid=p.id) }}"
+            enctype="multipart/form-data" class="upload-inline">
+        <input type="hidden" name="vista_id" value="{{ v.id }}">
+        <label class="botao-arquivo">
+          <input type="file" name="fotos" accept="image/*" multiple required>
+          <span>📷 Adicionar foto</span>
+        </label>
+        <button class="btn btn-mini btn-primario botao-enviar">Enviar</button>
+        <span class="dica-arrastar">ou arraste a foto aqui</span>
+      </form>
+      <div class="estado-envio" hidden></div>
+
+      <form method="post" action="{{ url_for('fotos.aplicavel', pid=p.id, vid=v.id) }}"
+            class="upload-inline" style="margin-top:8px">
+        {% if na %}
+        <input type="hidden" name="nao_aplicavel" value="0">
+        <button class="btn btn-mini">↩ Voltar a exigir esta vista</button>
+        {% else %}
+        <input type="hidden" name="nao_aplicavel" value="1">
+        <input type="text" name="motivo" placeholder="Motivo (opcional): ex. produto sem blindagem"
+               style="flex:1;min-width:120px;font-size:12px;padding:5px">
+        <button class="btn btn-mini" title="Deixa de ser cobrada neste processo">N/A</button>
+        {% endif %}
+      </form>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endfor %}
+
+<h2 style="margin:22px 0 12px">Fotos avulsas</h2>
+<div class="cartao" data-vista-cartao data-obrigatoria="0" data-na="0">
+  <p class="pequeno fraco">Fotos que não se encaixam no roteiro (detalhes pedidos pela OCD,
+  comparativos entre modelos similares, etc.).</p>
+  <div class="miniaturas" style="padding:0 0 12px">
+    {% for f in extras %}
+    <div class="mini">
+      <a href="{{ url_for('arquivo', relativo=f.arquivo) }}" target="_blank">
+        <img src="{{ url_for('arquivo', relativo=f.arquivo) }}" alt=""></a>
+      <form method="post" action="{{ url_for('fotos.excluir', pid=p.id, fid=f.id) }}"
+            class="js-excluir" onsubmit="return confirm('Remover esta foto?')">
+        <button class="x" title="Remover esta foto" aria-label="Remover">
+          {{ ICO_EXCLUIR }}</button>
+      </form>
+      <small>{{ f.legenda or f.nome_original }}</small>
+    </div>
+    {% endfor %}
+  </div>
+  <div class="rodape" style="border:none;background:none;padding:0">
+    <form method="post" action="{{ url_for('fotos.enviar', pid=p.id) }}"
+          enctype="multipart/form-data" class="upload-inline">
+      <label class="botao-arquivo">
+        <input type="file" name="fotos" accept="image/*" multiple required>
+        <span>📷 Adicionar foto</span>
+      </label>
+      <input type="text" name="legenda" placeholder="Legenda (opcional)" style="max-width:240px">
+      <button class="btn btn-mini btn-primario botao-enviar">Enviar</button>
+      <span class="dica-arrastar">ou arraste a foto aqui</span>
+    </form>
+    <div class="estado-envio" hidden></div>
+  </div>
+</div>
+
+</div>{# /area-fotos #}
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/fotos.js') }}"></script>
+{% endblock %}

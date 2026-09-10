@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block titulo %}Processos{% endblock %}
+
+{% block conteudo %}
+<div class="linha-flex mb16">
+  <h1 class="mb0">Processos de certificação</h1>
+  <a class="btn btn-primario direita" href="{{ url_for('processos.novo') }}">＋ Novo processo</a>
+</div>
+
+<div class="cartao">
+  <form class="filtros" method="get">
+    <div class="campo" style="flex:1;min-width:220px">
+      <label>Buscar</label>
+      <input type="search" name="q" value="{{ q }}" placeholder="Número, modelo, referência OCD…">
+    </div>
+    <div class="campo">
+      <label>Status</label>
+      <select name="status">
+        <option value="">Todos</option>
+        {% for s in STATUS_LISTA %}
+        <option value="{{ s.nome }}" {{ 'selected' if status == s.nome }}>{{ s.nome }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="campo">
+      <label>OCD</label>
+      <select name="ocd_id">
+        <option value="">Todas</option>
+        {% for o in ocds %}
+        <option value="{{ o.id }}" {{ 'selected' if ocd_id == o.id|string }}>{{ o.nome }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <button class="btn btn-escuro">Filtrar</button>
+    {% if q or status or ocd_id %}<a class="btn" href="{{ url_for('processos.lista') }}">Limpar</a>{% endif %}
+  </form>
+
+  {% if itens %}
+  <div class="rolagem">
+  <table class="tabela">
+    <thead>
+      <tr>
+        <th>Processo</th><th>Modelo</th><th>Tipo</th><th>OCD</th><th>Laboratório</th>
+        <th>Status</th><th>Checklist</th><th class="num">Abertura</th><th class="num">Custo</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in itens %}
+      <tr>
+        <td class="nowrap"><a href="{{ url_for('processos.detalhe', pid=p.id) }}">{{ p.numero }}</a></td>
+        <td>
+          <span class="negrito">{{ p.produto.modelo }}</span>
+          {% if p.similares %}<br><small class="fraco">+ {{ p.similares|length }} similar(es)</small>{% endif %}
+        </td>
+        <td class="pequeno">{{ p.tipo_processo }}</td>
+        <td class="pequeno">{{ p.ocd.nome if p.ocd else '-' }}</td>
+        <td class="pequeno">{{ p.laboratorio.nome if p.laboratorio else '-' }}</td>
+        <td><span class="badge" style="{{ STATUS_ESTILOS.get(p.status, '') }}">{{ p.status }}</span></td>
+        <td style="min-width:90px">
+          <div class="progresso" title="{{ p.progresso_checklist }}%"><i style="width:{{ p.progresso_checklist }}%"></i></div>
+          <small class="fraco">{{ p.progresso_checklist }}%</small>
+        </td>
+        <td class="num pequeno">{{ p.data_abertura|data }}</td>
+        <td class="num pequeno">{{ p.custo_total|moeda if p.custo_total else '-' }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% else %}
+  <div class="vazio"><span class="ico">▦</span>
+    Nenhum processo encontrado.<br>
+    <a href="{{ url_for('processos.novo') }}">Criar um novo processo</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% block titulo %}Busca{% endblock %}
+
+{% block conteudo %}
+<h1>Busca</h1>
+{% if termo %}
+<p class="fraco">{{ total }} resultado(s) para <strong>“{{ termo }}”</strong>.</p>
+{% else %}
+<p class="fraco">Digite um modelo, número de processo, homologação, certificado ou nome de arquivo.</p>
+{% endif %}
+
+{% if resultados.processos %}
+<div class="cartao">
+  <h2>Processos ({{ resultados.processos|length }})</h2>
+  <div class="rolagem">
+  <table class="tabela">
+    <thead><tr><th>Processo</th><th>Modelo</th><th>Status</th><th>OCD</th><th class="num">Abertura</th></tr></thead>
+    <tbody>
+      {% for p in resultados.processos %}
+      <tr>
+        <td><a href="{{ url_for('processos.detalhe', pid=p.id) }}">{{ p.numero }}</a></td>
+        <td>{{ p.produto.modelo }}</td>
+        <td><span class="badge" style="{{ STATUS_ESTILOS.get(p.status, '') }}">{{ p.status }}</span></td>
+        <td class="pequeno">{{ p.ocd.nome if p.ocd else '-' }}</td>
+        <td class="num pequeno">{{ p.data_abertura|data }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</div>
+{% endif %}
+
+{% if resultados.homologacoes %}
+<div class="cartao">
+  <h2>Homologações ({{ resultados.homologacoes|length }})</h2>
+  <div class="rolagem">
+  <table class="tabela">
+    <thead><tr><th>Modelo(s)</th><th>Nº homologação</th><th>Certificado</th><th class="num">Validade</th><th>Situação</th></tr></thead>
+    <tbody>
+      {% for h in resultados.homologacoes %}
+      <tr>
+        <td><a href="{{ url_for('homologacoes.detalhe', hid=h.id) }}">{{ h.lista_modelos }}</a></td>
+        <td class="num pequeno">{{ h.numero }}</td>
+        <td class="pequeno">{{ h.certificado }}</td>
+        <td class="num pequeno">{{ h.validade|data }}</td>
+        <td class="pequeno">{{ h.situacao }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</div>
+{% endif %}
+
+{% if resultados.produtos %}
+<div class="cartao">
+  <h2>Produtos ({{ resultados.produtos|length }})</h2>
+  <div class="rolagem">
+  <table class="tabela">
+    <thead><tr><th>Modelo</th><th>Nome comercial</th><th>Tipo</th><th>Natureza</th><th>Processos</th></tr></thead>
+    <tbody>
+      {% for pr in resultados.produtos %}
+      <tr>
+        <td><a href="{{ url_for('produtos.detalhe', pid=pr.id) }}">{{ pr.modelo }}</a></td>
+        <td class="pequeno">{{ pr.nome_comercial or '-' }}</td>
+        <td class="pequeno">{{ pr.tipo_equipamento or '-' }}</td>
+        <td class="pequeno">{{ pr.natureza }}</td>
+        <td class="pequeno">
+          {% for pp in pr.processos %}
+          <a href="{{ url_for('processos.detalhe', pid=pp.id) }}" class="chip">{{ pp.numero }}</a>
+          {% else %}<span class="fraco">-</span>{% endfor %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</div>
+{% endif %}
+
+{% if resultados.documentos %}
+<div class="cartao">
+  <h2>Documentos ({{ resultados.documentos|length }})</h2>
+  <div class="rolagem">
+  <table class="tabela">
+    <thead><tr><th>Documento</th><th>Processo</th><th>Modelo</th><th class="num">Data</th></tr></thead>
+    <tbody>
+      {% for d in resultados.documentos %}
+      <tr>
+        <td><a href="{{ url_for('documentos.ver', did=d.id) }}">{{ d.titulo }} (v{{ d.versao }})</a></td>
+        <td class="pequeno">{{ d.processo.numero }}</td>
+        <td class="pequeno">{{ d.processo.produto.modelo }}</td>
+        <td class="num pequeno">{{ d.data_documento|data }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</div>
+{% endif %}
+
+{% if resultados.anexos %}
+<div class="cartao">
+  <h2>Anexos ({{ resultados.anexos|length }})</h2>
+  <div class="rolagem">
+  <table class="tabela">
+    <thead><tr><th>Arquivo</th><th>Categoria</th><th>Processo</th><th class="num">Valor</th></tr></thead>
+    <tbody>
+      {% for a in resultados.anexos %}
+      <tr>
+        <td><a href="{{ url_for('arquivo', relativo=a.arquivo) }}" target="_blank">{{ a.titulo or a.nome_original }}</a></td>
+        <td class="pequeno">{{ a.categoria }}</td>
+        <td class="pequeno"><a href="{{ url_for('anexos.lista', pid=a.processo_id) }}">{{ a.processo.numero }}</a></td>
+        <td class="num pequeno">{{ a.valor|moeda if a.valor else '-' }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</div>
+{% endif %}
+
+{% if termo and total == 0 %}
+<div class="cartao"><div class="vazio"><span class="ico">🔍</span>Nada encontrado.</div></div>
+{% endif %}
+{% endblock %}

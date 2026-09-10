@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block titulo %}Similares · {{ p.numero }}{% endblock %}
+
+{% block conteudo %}
+{% include "processos/_abas.html" %}
+
+<div class="grade g2">
+  <div class="cartao">
+    <div class="cartao-titulo">
+      <h2>Modelos similares</h2>
+      <span class="badge neutro">{{ p.similares|length }}</span>
+    </div>
+    <p class="pequeno fraco">Modelos que serão cobertos pelo <strong>mesmo código de
+    homologação</strong> do modelo base ({{ p.produto.modelo }}). Só use quando os modelos
+    tiverem a mesma placa mãe.</p>
+
+    {% if p.similares %}
+    <div class="rolagem">
+    <table class="tabela">
+      <thead><tr><th>Modelo</th><th>Nome comercial</th><th>Diferença</th><th></th></tr></thead>
+      <tbody>
+      {% for s in p.similares %}
+      <tr>
+        <td class="negrito">{{ s.modelo }}</td>
+        <td class="pequeno">{{ s.nome_comercial or '-' }}</td>
+        <td class="pequeno">
+          {{ s.diferencas or '-' }}
+          {% if s.diferencas_en %}<br><em class="fraco">{{ s.diferencas_en }}</em>{% endif %}
+        </td>
+        <td class="acoes">
+          <div class="acoes-icones">
+            <form method="post" action="{{ url_for('processos.excluir_similar', pid=p.id, sid=s.id) }}"
+                  onsubmit="return confirm('Remover {{ s.modelo }}?')">
+              <button class="btn-ico perigo" title="Remover este similar" aria-label="Remover">
+                {{ ICO_EXCLUIR }}</button>
+            </form>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    </div>
+    <div class="barra-acoes mt16">
+      <a class="btn btn-primario" href="{{ url_for('documentos.gerar', pid=p.id, tipo='similaridade') }}">
+        Gerar Declaração de Similaridade</a>
+    </div>
+    {% else %}
+    <div class="vazio"><span class="ico">▣</span>Nenhum modelo similar cadastrado.</div>
+    {% endif %}
+  </div>
+
+  <div class="cartao">
+    <h2>Adicionar modelo similar</h2>
+    <form method="post">
+      <div class="campos">
+        <div class="campo">
+          <label>Modelo *</label>
+          <input type="text" name="modelo" required placeholder="Ex.: SenseFace 3B-ID">
+        </div>
+        <div class="campo">
+          <label>Nome comercial</label>
+          <input type="text" name="nome_comercial">
+        </div>
+        <div class="campo">
+          <label>Diferença em relação ao modelo base (português)</label>
+          <textarea name="diferencas" rows="3"
+            placeholder="Ex.: de um possuir leitor de impressão digital e o outro não"></textarea>
+          <span class="dica">Este texto entra na frase da declaração.</span>
+        </div>
+        <div class="campo">
+          <label>Difference (english)</label>
+          <textarea name="diferencas_en" rows="3"
+            placeholder="Ex.: one with a fingerprint reader and the other without"></textarea>
+          <span class="dica">Usado na coluna em inglês do documento bilíngue.</span>
+        </div>
+        <div class="campo">
+          <label>Observações internas</label>
+          <textarea name="observacoes" rows="2"></textarea>
+        </div>
+      </div>
+      <button class="btn btn-primario mt16">Adicionar</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

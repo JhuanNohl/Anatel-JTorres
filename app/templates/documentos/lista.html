@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block titulo %}Documentos · {{ p.numero }}{% endblock %}
+
+{% block conteudo %}
+{% include "processos/_abas.html" %}
+
+<div class="cartao">
+  <div class="cartao-titulo">
+    <h2>Emitir declaração</h2>
+    <a class="pequeno" href="{{ url_for('documentos.templates') }}">editar os textos padrão</a>
+  </div>
+  <div class="grade g3">
+    {% for tipo, dados in tipos.items() %}
+    <div class="cartao compacto mb0" style="border-left:3px solid var(--verde)">
+      <div class="linha-flex mb8">
+        <strong style="color:var(--cinza)">{{ dados[0] }}</strong>
+        {% if p.tem_documento(tipo) %}<span class="badge ok direita">emitida</span>{% endif %}
+      </div>
+      <p class="pequeno fraco">{{ dados[2] }}</p>
+      <div class="pequeno mb8"><span class="chip">para: {{ dados[1] }}</span></div>
+      <a class="btn btn-mini {{ 'btn-primario' if not p.tem_documento(tipo) }}"
+         href="{{ url_for('documentos.gerar', pid=p.id, tipo=tipo) }}">
+        {{ 'Emitir nova versão' if p.tem_documento(tipo) else 'Gerar documento' }}</a>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+{% macro linhas(documentos, atual=true) %}
+{% for d in documentos %}
+<tr class="{{ '' if atual else 'fraco' }}">
+  <td><a href="{{ url_for('documentos.ver', did=d.id) }}">{{ d.titulo }}</a></td>
+  <td class="num">v{{ d.versao }}</td>
+  <td class="pequeno">{{ d.signatario.nome if d.signatario else '-' }}</td>
+  <td class="num pequeno">{{ d.data_documento|data }}</td>
+  <td class="pequeno nowrap">
+    {% if d.arquivo_pdf %}
+    <a href="{{ url_for('download', relativo=d.arquivo_pdf) }}" class="negrito">PDF</a>
+    {% endif %}
+    {% if d.arquivo_docx %}
+    {% if d.arquivo_pdf %} · {% endif %}
+    <a href="{{ url_for('download', relativo=d.arquivo_docx) }}">.docx</a>
+    {% endif %}
+    {% if not d.arquivo_pdf and not d.arquivo_docx %}<span class="fraco">-</span>{% endif %}
+  </td>
+  <td class="acoes">
+    <div class="acoes-icones">
+      <a class="btn-ico" title="Ver o documento" aria-label="Ver"
+         href="{{ url_for('documentos.ver', did=d.id) }}">{{ ICO_VER }}</a>
+      <a class="btn-ico" title="Editar o texto" aria-label="Editar"
+         href="{{ url_for('documentos.editar', did=d.id) }}">{{ ICO_EDITAR }}</a>
+    </div>
+  </td>
+</tr>
+{% endfor %}
+{% endmacro %}
+
+<div class="cartao">
+  <div class="cartao-titulo">
+    <h2>Documentos emitidos</h2>
+    <span class="badge neutro">{{ atuais|length }}</span>
+  </div>
+  {% if atuais %}
+  <p class="pequeno fraco">A versão vigente de cada declaração — é o que vai no pacote da OCD.</p>
+  <div class="rolagem">
+  <table class="tabela">
+    <thead>
+      <tr><th>Documento</th><th>Versão</th><th>Assinado por</th><th>Data</th><th>Arquivo</th><th class="acoes">Ações</th></tr>
+    </thead>
+    <tbody>{{ linhas(atuais) }}</tbody>
+  </table>
+  </div>
+  {% else %}
+  <div class="vazio"><span class="ico">✎</span>
+    Nenhum documento emitido. Comece pela <strong>Declaração de Rastreabilidade</strong>.</div>
+  {% endif %}
+</div>
+
+{% if anteriores %}
+<div class="cartao">
+  <details class="bloco mb0" style="border:none;padding:0;background:none">
+    <summary>
+      Versões anteriores <span class="badge off">{{ anteriores|length }}</span>
+      <span class="pequeno fraco">— substituídas por uma versão mais nova; ficam só no histórico</span>
+    </summary>
+    <div class="rolagem mt16">
+    <table class="tabela">
+      <thead>
+        <tr><th>Documento</th><th>Versão</th><th>Assinado por</th><th>Data</th><th>Arquivo</th><th class="acoes"></th></tr>
+      </thead>
+      <tbody>{{ linhas(anteriores, false) }}</tbody>
+    </table>
+    </div>
+    <form method="post" action="{{ url_for('documentos.limpar_versoes', pid=p.id) }}"
+          class="mt16"
+          onsubmit="return confirm('Apagar as {{ anteriores|length }} versões anteriores? Fica a mais recente de cada documento. Os arquivos também são removidos.')">
+      <button class="btn btn-perigo">{{ ICO_EXCLUIR }} Apagar as versões anteriores</button>
+      <span class="pequeno fraco">A versão vigente de cada documento é preservada.</span>
+    </form>
+  </details>
+</div>
+{% endif %}
+{% endblock %}

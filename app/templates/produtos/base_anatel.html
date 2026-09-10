@@ -1,0 +1,297 @@
+{% extends "base.html" %}
+{% block titulo %}Base ANATEL{% endblock %}
+
+{% block conteudo %}
+<div class="linha-flex mb16">
+  <div>
+    <h1 class="mb0">Atualização da base ANATEL</h1>
+    <p class="fraco pequeno mb0">De onde vêm os modelos e as situações de
+    <a href="{{ url_for('produtos.lista') }}">Produtos / modelos</a>.</p>
+  </div>
+  <div class="direita barra-acoes">
+    <a class="btn" href="{{ url_for('produtos.lista') }}">← Produtos / modelos</a>
+    <form method="post" action="{{ url_for('produtos.atualizar') }}">
+      <button class="btn btn-primario">⟳ Atualizar agora</button>
+    </form>
+  </div>
+</div>
+
+{% if dias_da_base is none %}
+<div class="aviso atencao">
+  <span>!</span>
+  <div>A base da ANATEL <strong>nunca foi lida</strong> — as situações abaixo estão vazias ou
+    vêm só do cadastro manual.
+    <a href="{{ url_for('produtos.base') }}">Ler a base agora</a>.</div>
+</div>
+{% elif dias_da_base > dias_para_avisar %}
+<div class="aviso atencao">
+  <span>!</span>
+  <div>A situação mostrada aqui é de <strong>{{ dias_da_base }} dias atrás</strong>.
+    A ANATEL atualiza a base quase todo dia útil — uma homologação pode ter sido suspensa
+    desde então. <a href="{{ url_for('produtos.base') }}">Atualizar agora</a>.</div>
+</div>
+{% endif %}
+
+<div class="grade g4 mb16">
+  <div class="indicador ok"><div class="valor">{{ resumo.vigentes }}</div>
+    <div class="rotulo">Homologações vigentes</div></div>
+  <div class="indicador erro"><div class="valor">{{ resumo.problema }}</div>
+    <div class="rotulo">Homologações sem vigência</div></div>
+  <div class="indicador info"><div class="valor">{{ resumo.modelos }}</div>
+    <div class="rotulo">Modelos certificados</div></div>
+  <div class="indicador"><div class="valor">{{ resumo.aplicacoes }}</div>
+    <div class="rotulo">Vínculos módulo → produto</div></div>
+</div>
+
+<p class="pequeno fraco mb16">Os números desta tela são de <strong>homologações</strong>
+(certificados). Em <a href="{{ url_for('produtos.lista') }}">Produtos / modelos</a> são de
+<strong>modelos</strong>: um certificado costuma cobrir vários modelos, por isso os totais
+não batem — e não deveriam.</p>
+
+{% macro prazo(horas) -%}
+{%- if horas is none -%}—
+{%- elif horas|abs < 1 -%}{{ (horas|abs * 60)|round|int }} min
+{%- elif horas|abs < 48 -%}{{ horas|abs|round(1) }} h
+{%- else -%}{{ (horas|abs / 24)|round|int }} dias
+{%- endif -%}
+{%- endmacro %}
+
+<div class="cartao" id="agendamento">
+  <div class="cartao-titulo">
+    <h2>Atualização automática</h2>
+    {% if config.automatico %}
+      {% if config.vencida %}<span class="badge warn">atualizando em breve</span>
+      {% else %}<span class="badge ok">ligada</span>{% endif %}
+    {% else %}<span class="badge off">desligada</span>{% endif %}
+  </div>
+  <p class="pequeno">O sistema vai ao site da ANATEL, baixa o arquivo de produtos
+  certificados e atualiza a base sozinho, sem ninguém clicar. A verificação acontece a
+  cada 15 minutos; se estiver no prazo, nada é baixado.</p>
+
+  <div class="grade g3 mb16">
+    <div class="indicador {{ 'ok' if config.idade_em_horas is not none and config.idade_em_horas < 24 else 'warn' }}">
+      <div class="valor">{{ prazo(config.idade_em_horas) }}</div>
+      <div class="rotulo">Vida atual da base</div>
+    </div>
+    <div class="indicador {{ 'erro' if config.vencida else 'info' }}">
+      <div class="valor">
+        {%- if not config.automatico -%}—
+        {%- elif config.vencida -%}agora
+        {%- else -%}{{ prazo(config.horas_restantes) }}{%- endif -%}
+      </div>
+      <div class="rotulo">{{ 'Atualiza na próxima ronda' if config.vencida
+                             else 'Tempo restante' }}</div>
+    </div>
+    <div class="indicador">
+      <div class="valor">{{ config.intervalo_por_extenso }}</div>
+      <div class="rotulo">Intervalo configurado</div>
+    </div>
+  </div>
+
+  <form method="post" action="{{ url_for('produtos.agendamento') }}">
+    <div class="filtros">
+      <div class="linha-check" style="margin-top:22px">
+        <input type="checkbox" name="automatico" id="automatico" value="1"
+               {{ 'checked' if config.automatico }}>
+        <label for="automatico">Atualizar sozinho</label>
+      </div>
+      <div class="campo">
+        <label for="intervalo_valor">A cada</label>
+        <input type="number" name="intervalo_valor" id="intervalo_valor" min="1" max="999"
+               value="{{ config.intervalo_valor }}" style="width:90px">
+      </div>
+      <div class="campo">
+        <label for="intervalo_unidade">Unidade</label>
+        <select name="intervalo_unidade" id="intervalo_unidade">
+          {% for valor, rotulo in unidades %}
+          <option value="{{ valor }}" {{ 'selected' if config.intervalo_unidade == valor }}>{{ rotulo }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="campo">
+        <label for="dias_aviso_vencimento">Avisar vencimento com</label>
+        <div class="filtro-linha">
+          <input type="number" name="dias_aviso_vencimento" id="dias_aviso_vencimento"
+                 min="1" max="720" value="{{ config.dias_de_aviso }}" style="width:90px">
+          <span class="pequeno fraco">dias de antecedência</span>
+        </div>
+      </div>
+      <button class="btn btn-escuro">Salvar</button>
+    </div>
+    <span class="dica">A ANATEL republica a base quase todo dia útil — uma vez por dia ou a
+      cada 7 dias cobre bem. O aviso de vencimento vale para o crachá
+      “Vence em N dias” em Produtos / modelos e para o atalho de renovação;
+      90 dias é o padrão porque renovar exige ensaio de laboratório.</span>
+  </form>
+
+  {% if config.ultimo_erro %}
+  <div class="aviso erro mt16 mb0">
+    <span>!</span>
+    <div>A última tentativa automática falhou: {{ config.ultimo_erro }}
+      {% if config.ultima_tentativa %}<br><span class="pequeno">em
+        {{ config.ultima_tentativa|datahora }}</span>{% endif %}
+      <br><span class="pequeno">O botão “Atualizar agora” continua funcionando.</span></div>
+  </div>
+  {% elif config.ultima_tentativa %}
+  <p class="pequeno fraco mb0 mt16">Última verificação automática:
+    {{ config.ultima_tentativa|datahora }}.</p>
+  {% endif %}
+</div>
+
+<div class="cartao" id="importar">
+  <div class="cartao-titulo">
+    <h2>Trazer dados do app ANATEL antigo</h2>
+    {% if resumo.aplicacoes or resumo.com_foto %}
+    <span class="badge ok">já importado</span>
+    {% else %}
+    <span class="badge warn">ainda não importado</span>
+    {% endif %}
+  </div>
+  <p class="pequeno">O app antigo (o <code>anatel_server.py</code>, porta 3200) guardava a
+  natureza e o tipo de cada modelo, a versão de placa, a lista de produtos que usam cada
+  módulo e as <strong>fotos</strong>. Informe a pasta dele e o sistema traz tudo.
+  Pode clicar mais de uma vez — nada é duplicado e nada que você ajustou aqui é sobrescrito.</p>
+  {% if not resumo.aplicacoes and not resumo.com_foto %}
+  <div class="aviso info">
+    <span>i</span>
+    <div>Faça a leitura da base (botão acima) <strong>antes</strong> de importar — a curadoria
+      precisa das homologações para se encaixar.</div>
+  </div>
+  {% endif %}
+  <div class="bloco-anatel mb16">
+    <div class="rot pequeno negrito mb8">O que este servidor está vendo na pasta</div>
+    <div class="dados">
+      <div class="item"><div class="rot">Pasta</div>
+        <div class="val pequeno"><code>{{ diagnostico.caminho }}</code></div></div>
+      <div class="item"><div class="rot">A pasta existe?</div>
+        <div class="val">
+          {% if diagnostico.existe %}<span class="badge ok">sim</span>
+          {% else %}<span class="badge erro">não</span>{% endif %}</div></div>
+      <div class="item"><div class="rot">Encontrou a .anatel_cache?</div>
+        <div class="val">
+          {% if diagnostico.cache %}<span class="badge ok">sim</span>
+          {% else %}<span class="badge erro">não</span>{% endif %}</div></div>
+      <div class="item"><div class="rot">Arquivos de imagem</div>
+        <div class="val">
+          <span class="badge {{ 'ok' if diagnostico.imagens >= 179 else ('warn' if diagnostico.imagens else 'erro') }}">
+            {{ diagnostico.imagens }}</span>
+          <span class="pequeno fraco">esperado: 179</span></div></div>
+      <div class="item"><div class="rot">Base do app antigo</div>
+        <div class="val">{{ 'presente' if diagnostico.tem_base else 'faltando' }}</div></div>
+      <div class="item"><div class="rot">Lista de fotos</div>
+        <div class="val">{{ 'presente' if diagnostico.tem_lista else 'faltando' }}</div></div>
+    </div>
+    {% if not diagnostico.existe or not diagnostico.cache %}
+    <div class="aviso atencao mt16 mb0">
+      <span>!</span>
+      <div>Não encontrei a pasta de dados do app antigo neste caminho. Se os dados
+        estiverem em outro lugar, use “Importar de outra pasta” abaixo. Se você já
+        importou, não há nada a fazer aqui.</div>
+    </div>
+    {% elif diagnostico.imagens < 179 %}
+    <div class="aviso erro mt16 mb0">
+      <span>!</span>
+      <div><strong>Faltam arquivos de imagem nesta pasta</strong> — é por isso que as
+        fotos não aparecem. Pare o sistema, extraia o ZIP da atualização novamente
+        conferindo que <code>dados-app-antigo\.anatel_cache\fotos</code> ficou com
+        179 arquivos, e clique outra vez em “Trazer tudo agora”.</div>
+    </div>
+    {% endif %}
+  </div>
+
+  <form method="post" action="{{ url_for('produtos.preparar') }}" class="mb16">
+    <button class="btn btn-primario">Trazer tudo agora (base + dados e fotos)</button>
+    <span class="pequeno fraco">Faz a leitura da ANATEL e a importação de uma vez, na
+      ordem certa.</span>
+  </form>
+  <details class="bloco">
+    <summary>Importar de outra pasta</summary>
+  <form method="post" action="{{ url_for('produtos.importar_antigo') }}">
+    <div class="campo">
+      <label>Pasta do app antigo</label>
+      <input type="text" name="pasta" value="{{ pasta_sugerida }}"
+             placeholder="D:\Desenvolvimento\ANATEL">
+      <span class="dica">É a pasta que contém o <code>anatel_server.py</code> e a
+        <code>.anatel_cache</code>. Precisa estar acessível <strong>por este servidor</strong> —
+        se não estiver, copie a pasta <code>.anatel_cache</code> para cá e aponte para ela.</span>
+    </div>
+    <button class="btn mt16">Trazer dados e fotos desta pasta</button>
+  </form>
+  </details>
+</div>
+
+<div class="grade g2">
+  <div>
+    <div class="cartao">
+      <h2>Como funciona</h2>
+      <p class="pequeno">A ANATEL publica um arquivo com <strong>todos</strong> os produtos
+      certificados do país. Ao clicar em <strong>Atualizar agora</strong> o sistema baixa esse
+      arquivo, separa apenas o que é de <strong>{{ solicitante }}</strong> e grava aqui a
+      situação de cada homologação.</p>
+      <p class="pequeno">O que vem da ANATEL: número, certificado, validade, situação do
+      certificado e do requerimento, data de homologação, categoria, fabricante e CNPJ.
+      <br>O que é seu e o sistema <strong>nunca</strong> sobrescreve: natureza, tipo,
+      versão de placa, produtos que usam o módulo, fotos, OCD e observações.</p>
+      <hr>
+      <div class="dados">
+        <div class="item"><div class="rot">Última leitura</div>
+          <div class="val">{{ ultima.criado_em|datahora if ultima else '— nunca —' }}</div></div>
+        <div class="item"><div class="rot">Homologações na base</div>
+          <div class="val">{{ resumo.total }} ({{ resumo.da_anatel }} da ANATEL)</div></div>
+        <div class="item"><div class="rot">Com foto</div>
+          <div class="val">{{ resumo.com_foto }}</div></div>
+        <div class="item"><div class="rot">Arquivo baixado</div>
+          <div class="val">{{ 'sim, em cache' if arquivo_local else 'ainda não' }}</div></div>
+      </div>
+      <p class="pequeno fraco mt16">O arquivo tem cerca de 8 MB e quase 200 mil linhas —
+      a atualização leva de 30 segundos a 2 minutos, dependendo da internet.</p>
+    </div>
+
+    {% if ultima and ultima.lista_mudancas %}
+    <div class="cartao">
+      <div class="cartao-titulo">
+        <h2>O que mudou na última leitura</h2>
+        <span class="badge warn">{{ ultima.lista_mudancas|length }}</span>
+      </div>
+      <ul class="pequeno" style="padding-left:18px;margin:0">
+        {% for linha in ultima.lista_mudancas %}<li>{{ linha }}</li>{% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="cartao">
+    <div class="cartao-titulo">
+      <h2>Histórico de leituras</h2>
+      <a class="pequeno" href="{{ url_for('homologacoes.lista') }}">ver as homologações</a>
+    </div>
+    {% if historico %}
+    <div class="rolagem">
+    <table class="tabela">
+      <thead><tr><th>Quando</th><th class="num">Lidas</th><th class="num">Homologações</th>
+        <th class="num">Novas</th><th class="num">Mudanças</th></tr></thead>
+      <tbody>
+      {% for s in historico %}
+      <tr>
+        <td class="pequeno nowrap">{{ s.criado_em|datahora }}</td>
+        <td class="num pequeno">{{ s.encontradas }}</td>
+        <td class="num pequeno">{{ s.homologacoes }}</td>
+        <td class="num pequeno">{{ s.criadas or '—' }}</td>
+        <td class="num pequeno">
+          {% if s.lista_mudancas %}<span class="badge warn">{{ s.lista_mudancas|length }}</span>
+          {% else %}<span class="fraco">—</span>{% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    </div>
+    {% else %}
+    <div class="vazio"><span class="ico">⟳</span>
+      A base ainda não foi lida.<br>
+      <span class="pequeno">Clique em “Atualizar agora” para trazer as homologações da ANATEL.</span>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

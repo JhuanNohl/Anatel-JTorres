@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+{% block titulo %}Pacote OCD · {{ p.numero }}{% endblock %}
+
+{% block conteudo %}
+{% include "processos/_abas.html" %}
+
+{% if total_pendencias %}
+<div class="cartao" style="border-left:4px solid var(--vermelho)">
+  <div class="cartao-titulo">
+    <h2>Pacote bloqueado</h2>
+    <span class="badge erro">{{ total_pendencias }} pendência(s)</span>
+  </div>
+  <p class="pequeno fraco">O ZIP só é gerado quando não sobra nenhuma pendência. Resolva os
+  itens abaixo — clique em cada um para ir direto ao lugar certo.</p>
+
+  {% for grupo, itens in pendencias.items() %}
+  <h4>{{ grupo }} <span class="badge warn">{{ itens|length }}</span></h4>
+  <ul class="pequeno" style="padding-left:18px;margin:0 0 14px">
+    {% for f in itens %}
+    <li style="margin-bottom:3px">
+      <a href="{{ url_for(f.endpoint, **f.params) }}{{ '#' ~ f.ancora if f.ancora }}">{{ f.item }}</a>
+    </li>
+    {% endfor %}
+  </ul>
+  {% endfor %}
+
+  <div class="barra-acoes">
+    <button class="btn" disabled title="Resolva as pendências para liberar">
+      ⬇ Baixar pacote (bloqueado)</button>
+  </div>
+</div>
+{% else %}
+<div class="cartao" style="border-left:4px solid var(--verde)">
+  <div class="cartao-titulo">
+    <h2>Pacote pronto para envio</h2>
+    <span class="badge ok">sem pendências</span>
+  </div>
+  <p class="pequeno fraco">{{ total }} arquivo(s) organizados em pastas, mais um índice
+  <code>00_LEIA-ME.txt</code> com os dados do processo, a rastreabilidade declarada e a lista
+  completa do conteúdo.<br>
+  Os <strong>PDFs das declarações são refeitos no momento do download</strong>, com o logotipo,
+  a assinatura e o layout atuais — o que está no ZIP é sempre o que a tela mostra.</p>
+
+  <div class="barra-acoes">
+    <a class="btn btn-primario"
+       href="{{ url_for('pacote.baixar', pid=p.id,
+                        comercial='1' if incluir_comercial else None,
+                        empresa='1' if incluir_empresa else None) }}">
+      ⬇ Baixar pacote .zip</a>
+
+    {% if incluir_empresa %}
+    <a class="btn" href="{{ url_for('pacote.ver', pid=p.id,
+                                    comercial='1' if incluir_comercial else None) }}">
+      Tirar documentos da empresa</a>
+    {% else %}
+    <a class="btn" href="{{ url_for('pacote.ver', pid=p.id, empresa='1',
+                                    comercial='1' if incluir_comercial else None) }}">
+      ＋ Incluir documentos da empresa ({{ total_docs_empresa }})</a>
+    {% endif %}
+
+    {% if incluir_comercial %}
+    <a class="btn" href="{{ url_for('pacote.ver', pid=p.id,
+                                    empresa='1' if incluir_empresa else None) }}">
+      Tirar propostas, NFs e boletos</a>
+    {% else %}
+    <a class="btn" href="{{ url_for('pacote.ver', pid=p.id, comercial='1',
+                                    empresa='1' if incluir_empresa else None) }}">
+      ＋ Incluir propostas, NFs e boletos</a>
+    {% endif %}
+  </div>
+
+  {% if incluir_empresa %}
+  <div class="aviso ok" style="margin-top:14px">
+    <span>✓</span>
+    <div>Cartão CNPJ, contrato social e certificado ISO entram no pacote
+    (<code>03_Solicitante</code> e <code>04_Fabricante</code>). Use quando a OCD pedir.</div>
+  </div>
+  {% elif total_docs_empresa %}
+  <div class="aviso info" style="margin-top:14px">
+    <span>i</span>
+    <div>Há {{ total_docs_empresa }} documento(s) da empresa guardados (CNPJ, contrato social,
+    ISO). Eles <strong>não entram por padrão</strong> — a OCP-Teli só pede de vez em quando.
+    Um clique acima inclui todos.</div>
+  </div>
+  {% endif %}
+
+  {% if incluir_comercial %}
+  <div class="aviso info" style="margin-top:14px">
+    <span>i</span>
+    <div>Propostas, notas fiscais e boletos estão incluídos na pasta
+    <code>07_Comercial_interno</code>. <strong>Normalmente isso não vai para a OCD</strong> —
+    confira antes de enviar.</div>
+  </div>
+  {% endif %}
+</div>
+{% endif %}
+
+<div class="cartao">
+  <div class="cartao-titulo">
+    <h2>Conteúdo do pacote</h2>
+    <span class="badge neutro">{{ total }} arquivo(s)</span>
+  </div>
+  {% if arvore %}
+  <div style="font-family:Consolas,'Courier New',monospace;font-size:12.5px;line-height:1.75">
+    <div class="negrito">{{ p.numero|lower }}_{{ p.produto.modelo|lower }}/</div>
+    <div style="padding-left:18px" class="fraco">00_LEIA-ME.txt</div>
+    {% for pasta, arquivos in arvore.items() %}
+    <div style="padding-left:18px" class="negrito destaque-verde">{{ pasta }}/</div>
+      {% for nome, caminho in arquivos|sort %}
+      <div style="padding-left:38px">{{ nome }}</div>
+      {% endfor %}
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="vazio"><span class="ico">📦</span>Nada para empacotar ainda.</div>
+  {% endif %}
+</div>
+
+<div class="cartao">
+  <h3>O que entra em cada pasta</h3>
+  <div class="rolagem">
+  <table class="tabela">
+    <tbody>
+      <tr><td class="negrito nowrap">01_Declaracoes</td>
+        <td class="pequeno">Última versão de cada declaração emitida, em <strong>PDF</strong>.
+        O .docx é a versão de trabalho e fica no sistema. Versões antigas também não vão no
+        pacote.</td></tr>
+      <tr><td class="negrito nowrap">02_Fotos</td>
+        <td class="pequeno">Subpastas por grupo do roteiro — Externas, Identificação, Internas,
+        Acessórios e embalagem, Complementares. Os arquivos são renomeados com a ordem da vista,
+        então chegam na sequência certa.</td></tr>
+      <tr><td class="negrito nowrap">03_Solicitante</td>
+        <td class="pequeno">Cartão CNPJ, Contrato Social e procuração — vêm dos
+        <strong>documentos da empresa</strong>, só quando você pedir para incluir.</td></tr>
+      <tr><td class="negrito nowrap">04_Fabricante</td>
+        <td class="pequeno">Certificado ISO, tradução juramentada e avaliação fabril — idem.</td></tr>
+      <tr><td class="negrito nowrap">05_Produto</td>
+        <td class="pequeno">Datasheet, manual, layout de etiqueta, diagrama de blocos,
+        esquemático e BOM.</td></tr>
+      <tr><td class="negrito nowrap">06_Ensaios_e_certificados</td>
+        <td class="pequeno">Relatório de ensaio, CCT e homologação.</td></tr>
+      <tr><td class="negrito nowrap">07_Comercial_interno</td>
+        <td class="pequeno">Propostas, notas fiscais e boletos.
+        <strong>Fora do pacote por padrão</strong> — são documentos internos.</td></tr>
+      <tr><td class="negrito nowrap">08_Outros</td>
+        <td class="pequeno">Requisitos enviados pela OCD, e-mails e demais anexos.</td></tr>
+    </tbody>
+  </table>
+  </div>
+</div>
+
+<div class="cartao">
+  <h3>Como o sistema decide que está pronto</h3>
+  <div class="grade g2 pequeno">
+    <div>
+      <div class="rot negrito mb8">Fotos</div>
+      Toda vista marcada como obrigatória precisa de pelo menos uma foto.
+      <div class="rot negrito mb8 mt16">Declarações</div>
+      Rastreabilidade e Direitos e Garantias sempre. Similaridade, Segurança Cibernética e
+      Manutenção conforme as marcações do processo.
+    </div>
+    <div>
+      <div class="rot negrito mb8">Anexos</div>
+      Manual <em>ou</em> Datasheet. CNPJ, contrato social e ISO ficam nos
+      <a href="{{ url_for('main.empresa') }}#documentos">documentos da empresa</a> e não são
+      cobrados aqui.
+      <div class="rot negrito mb8 mt16">Checklist</div>
+      Só as categorias <strong>Declarações</strong>, <strong>Fotos</strong> e
+      <strong>Produto e manual</strong> — é o que de fato vai no envio. Proposta comercial,
+      amostras, laudo, financeiro e encerramento são acompanhamento do processo e
+      <strong>não travam o pacote</strong>.
+    </div>
+  </div>
+</div>
+{% endblock %}

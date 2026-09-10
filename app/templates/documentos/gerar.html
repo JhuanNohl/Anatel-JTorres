@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+{% block titulo %}Gerar {{ titulo_padrao }}{% endblock %}
+
+{% block conteudo %}
+{% include "processos/_abas.html" %}
+
+<div class="grade g2">
+  <div class="cartao">
+    <h2>{{ titulo_padrao }}</h2>
+    <p class="pequeno fraco">Destinatário: <strong>{{ destinatario }}</strong>.
+    O texto é montado a partir do modelo escolhido, com os dados deste processo.</p>
+
+    {% if tipo == 'similaridade' and not p.similares %}
+    <div class="aviso erro">
+      <span>!</span>
+      <div>Nenhum modelo similar cadastrado.
+        <a href="{{ url_for('processos.similares', pid=p.id) }}">Cadastre os similares</a>
+        antes de gerar — eles entram na tabela do documento.</div>
+    </div>
+    {% endif %}
+    {% if tipo == 'seguranca_cibernetica' %}
+    <div class="aviso ok">
+      <span>✓</span>
+      <div>Formulário do Ato nº 77/2021 preenchido:
+        <strong>{{ p.requisitos_ciber|length - p.ciber_nao_aplicaveis|length }} requisitos como C</strong>
+        {% if p.ciber_nao_aplicaveis %}
+        e <strong>{{ p.ciber_nao_aplicaveis|length }} como NA</strong> (com justificativa)
+        {% endif %}.
+        <a href="{{ url_for('processos.ciberseguranca', pid=p.id) }}">Revisar o formulário</a>
+      </div>
+    </div>
+    {% endif %}
+
+    {% if tipo in ['rastreabilidade','manutencao'] and not (p.rast_serie or p.rast_lote or p.rast_data_fab or p.rast_mac or p.rast_outros) %}
+    <div class="aviso erro">
+      <span>!</span>
+      <div>Nenhum dado de rastreabilidade marcado.
+        <a href="{{ url_for('processos.rastreabilidade', pid=p.id) }}">Preencha a rastreabilidade</a>
+        para que as caixas saiam marcadas.</div>
+    </div>
+    {% endif %}
+    {% if not p.ocd and destinatario == 'OCD' %}
+    <div class="aviso erro"><span>!</span>
+      <div>Este processo não tem OCD selecionada — o endereçamento sairá em branco.
+        <a href="{{ url_for('processos.editar', pid=p.id) }}">Selecionar OCD</a></div>
+    </div>
+    {% endif %}
+
+    <form method="post">
+      <div class="campos">
+        <div class="campo">
+          <label>Modelo de texto</label>
+          <select name="template_id">
+            {% for t in templates %}
+            <option value="{{ t.id }}">{{ t.nome }} (v{{ t.versao }})</option>
+            {% endfor %}
+          </select>
+          {% if templates|length > 1 %}
+          <span class="dica">São {{ templates|length }} modelos para este documento — confira
+          qual está selecionado.</span>
+          {% endif %}
+        </div>
+        <div class="campo">
+          <label>Título do documento</label>
+          <input type="text" name="titulo" value="{{ templates[0].titulo or titulo_padrao }}">
+        </div>
+        {% for chave, rotulo, valor, formato in extras %}
+        <div class="campo">
+          <label>{{ rotulo }}</label>
+          {% if formato == 'texto' %}
+          <textarea name="{{ chave }}" rows="2">{{ valor }}</textarea>
+          {% else %}
+          <input type="text" name="{{ chave }}" value="{{ valor }}">
+          {% endif %}
+        </div>
+        {% endfor %}
+        <div class="grade g2">
+          <div class="campo">
+            <label>Cidade</label>
+            <input type="text" name="cidade" value="{{ cidade_padrao }}">
+          </div>
+          <div class="campo">
+            <label>Data do documento</label>
+            <input type="date" name="data_documento" value="{{ hoje.isoformat() }}">
+          </div>
+        </div>
+        <div class="campo">
+          <label>Signatário</label>
+          <select name="signatario_id">
+            {% for s in signatarios %}
+            <option value="{{ s.id }}"
+              {{ 'selected' if (p.signatario_id == s.id) or (not p.signatario_id and s.padrao) }}>
+              {{ s.nome }} — {{ s.cargo }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="barra-acoes mt16">
+        <button class="btn btn-primario">Gerar documento e .docx</button>
+        <a class="btn" href="{{ url_for('documentos.lista', pid=p.id) }}">Cancelar</a>
+      </div>
+    </form>
+  </div>
+
+  <div>
+    <div class="cartao">
+      <h3>Dados que serão usados</h3>
+      <div class="dados">
+        <div class="item"><div class="rot">Modelo(s)</div>
+          <div class="val">{{ p.modelos_declarados|join(', ') }}</div></div>
+        <div class="item"><div class="rot">Requerente</div>
+          <div class="val">{{ empresa_atual.razao_social }}</div></div>
+        <div class="item"><div class="rot">CNPJ</div><div class="val">{{ empresa_atual.cnpj }}</div></div>
+        <div class="item"><div class="rot">Unidade fabril</div>
+          <div class="val">{{ p.produto.fabricante.nome if p.produto.fabricante else '— não definida —' }}</div></div>
+        <div class="item"><div class="rot">OCD</div>
+          <div class="val">{{ p.ocd.nome if p.ocd else '-' }}</div></div>
+        <div class="item"><div class="rot">Referência OCD</div>
+          <div class="val">{{ p.referencia_ocd or '-' }}</div></div>
+      </div>
+      <hr>
+      <div class="rot pequeno negrito mb8">Rastreabilidade marcada</div>
+      <div class="pequeno">
+        {% for nome, marcado, valor in p.rastreabilidade_itens %}
+          {% if marcado %}<div>☒ {{ nome }}: {{ valor }}</div>{% endif %}
+        {% endfor %}
+        {% if not (p.rast_serie or p.rast_lote or p.rast_data_fab or p.rast_mac or p.rast_outros) %}
+        <span class="fraco">nada marcado</span>{% endif %}
+      </div>
+    </div>
+
+    <div class="cartao">
+      <h3>Modelo selecionado</h3>
+      {% for t in templates %}
+        {% if t.observacoes %}
+        <p class="pequeno"><strong>{{ t.nome }}:</strong> {{ t.observacoes }}</p>
+        {% endif %}
+      {% endfor %}
+      <a class="btn btn-mini" href="{{ url_for('documentos.templates') }}">
+        {{ ICO_EDITAR }} Editar modelos de texto</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+<meta charset="utf-8">
+<title>Dossiê de fotos · {{ p.numero }} · {{ p.produto.modelo }}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+<style>
+  body{background:#eef1f2}
+  .pagina{max-width:21cm;margin:0 auto;background:#fff;padding:2cm;min-height:29.7cm}
+  @media print{ body{background:#fff} .pagina{padding:0;max-width:none;min-height:0} }
+</style>
+</head>
+<body>
+<div class="barra-acoes nao-imprimir" style="padding:14px 20px;background:#fff;border-bottom:1px solid var(--borda)">
+  <button class="btn btn-primario" onclick="window.print()">Imprimir / salvar em PDF</button>
+  <a class="btn" href="{{ url_for('fotos.lista', pid=p.id) }}">Voltar</a>
+</div>
+
+<div class="pagina">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;
+              border-bottom:2px solid var(--verde);padding-bottom:10px;margin-bottom:20px">
+    <div>
+      <h1 style="margin:0">Dossiê fotográfico</h1>
+      <div class="fraco pequeno">{{ empresa_atual.razao_social }}</div>
+    </div>
+    <div class="pequeno" style="text-align:right">
+      Processo {{ p.numero }}<br>
+      Modelo <strong>{{ p.produto.modelo }}</strong><br>
+      {% if p.produto.fabricante %}{{ p.produto.fabricante.nome }} — {{ p.produto.fabricante.pais }}<br>{% endif %}
+      {{ hoje.strftime('%d/%m/%Y') }}
+    </div>
+  </div>
+
+  {% for vista, fotos in itens %}
+  <div class="dossie-item">
+    <h3>{{ vista.nome }} <small>{{ vista.grupo }}</small></h3>
+    {% if vista.descricao %}<p class="pequeno fraco">{{ vista.descricao }}</p>{% endif %}
+    <div class="dossie-fotos">
+      {% for f in fotos %}
+      <figure>
+        <img src="{{ url_for('arquivo', relativo=f.arquivo) }}" alt="">
+        <figcaption>{{ f.legenda or vista.nome }}{% if f.largura %} · {{ f.largura }}×{{ f.altura }} px{% endif %}</figcaption>
+      </figure>
+      {% endfor %}
+    </div>
+  </div>
+  {% endfor %}
+
+  {% if extras %}
+  <div class="dossie-item">
+    <h3>Fotos complementares</h3>
+    <div class="dossie-fotos">
+      {% for f in extras %}
+      <figure>
+        <img src="{{ url_for('arquivo', relativo=f.arquivo) }}" alt="">
+        <figcaption>{{ f.legenda or f.nome_original }}</figcaption>
+      </figure>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if not itens and not extras %}
+  <div class="vazio">Nenhuma foto enviada ainda.</div>
+  {% endif %}
+</div>
+</body>
+</html>

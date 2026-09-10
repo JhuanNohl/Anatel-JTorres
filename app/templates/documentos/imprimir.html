@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+<meta charset="utf-8">
+<title>{{ d.titulo }} · {{ p.numero }}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+<style>
+  body{background:#eef1f2}
+  @media print{ body{background:#fff} .folha{max-width:none;padding:0} }
+</style>
+</head>
+<body>
+<div class="barra-acoes nao-imprimir" style="padding:14px 20px;background:#fff;border-bottom:1px solid var(--borda)">
+  <button class="btn btn-primario" onclick="window.print()">Imprimir / salvar em PDF</button>
+  <a class="btn" href="{{ url_for('documentos.ver', did=d.id) }}">Voltar</a>
+</div>
+<div style="padding:20px 0">
+  {% include "documentos/_folha.html" %}
+</div>
+</body>
+</html>
