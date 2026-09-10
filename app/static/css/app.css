@@ -1,10 +1,13 @@
 /* Sistema de Certificacao ANATEL - ZKTeco Brasil
-   Paleta: #43B02A primario | #181B1E lateral | #348F22 realce | #262B30 texto */
+   Paleta: #43B02A primario | #181B1E lateral | #2F831F realce (AA) | #262B30 texto */
 
 :root{
-  /* ZKTeco */
+  /* ZKTeco. --verde fica so em usos decorativos (tarjas, bordas, pontos, foco)
+     que nao tem texto sobreposto. Onde ha texto/icone branco sobre fundo
+     verde, usar --verde-esc - e o valor que passa em 4.5:1 (WCAG AA) com
+     branco por cima; o --verde puro fica em 2.81:1 e falha. */
   --verde:#43B02A;
-  --verde-esc:#348F22;
+  --verde-esc:#2F831F;
   --verde-suave:#EEF8EB;
 
   /* Estrutura */
@@ -67,7 +70,7 @@ code{background:#eef1f2;padding:1px 5px;border-radius:4px;font-size:12.5px;color
 }
 .marca{padding:18px 18px 14px; border-bottom:1px solid rgba(255,255,255,.09)}
 .marca .logo{display:flex;align-items:center;gap:9px}
-.marca .quadro{width:26px;height:26px;border-radius:6px;background:var(--verde);
+.marca .quadro{width:26px;height:26px;border-radius:6px;background:var(--verde-esc);
   display:grid;place-items:center;color:#fff;font-weight:700;font-size:13px;flex:none}
 .marca strong{color:#fff;font-size:14.5px;letter-spacing:.2px}
 .marca span{display:block;font-size:11px;color:#a9aeb2;margin-top:2px}
@@ -213,9 +216,9 @@ code{background:#eef1f2;padding:1px 5px;border-radius:4px;font-size:12.5px;color
 .btn:hover{background:#f7f9f9;text-decoration:none;border-color:#cdd3d6}
 .btn:active{background:#eef0f1;border-color:#c3c9cc}
 .btn:focus-visible{outline:3px solid rgba(67,176,42,.20);outline-offset:2px}
-.btn-primario{background:var(--verde);border-color:var(--verde);color:#fff}
-.btn-primario:hover{background:var(--verde-esc);border-color:var(--verde-esc);color:#fff}
-.btn-primario:active{background:#2c7a1c;border-color:#2c7a1c;color:#fff}
+.btn-primario{background:var(--verde-esc);border-color:var(--verde-esc);color:#fff}
+.btn-primario:hover{background:#286F1A;border-color:#286F1A;color:#fff}
+.btn-primario:active{background:#236217;border-color:#236217;color:#fff}
 .btn-perigo{color:var(--vermelho);border-color:#f0d2ce}
 .btn-perigo:hover{background:#fdf1f0}
 .btn-perigo:active{background:#fbe1de}
@@ -346,10 +349,10 @@ legend{font-size:12px;font-weight:700;color:var(--cinza);text-transform:uppercas
 .botao-arquivo{position:relative;overflow:hidden;display:inline-flex;cursor:pointer}
 .botao-arquivo input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;
   width:100%;height:100%;padding:0;min-width:0}
-.botao-arquivo span{display:inline-flex;align-items:center;gap:6px;background:var(--verde);
-  border:1px solid var(--verde);color:#fff;padding:7px 13px;border-radius:6px;font-size:13px;
+.botao-arquivo span{display:inline-flex;align-items:center;gap:6px;background:var(--verde-esc);
+  border:1px solid var(--verde-esc);color:#fff;padding:7px 13px;border-radius:6px;font-size:13px;
   font-weight:600;white-space:nowrap}
-.botao-arquivo:hover span{background:var(--verde-esc);border-color:var(--verde-esc)}
+.botao-arquivo:hover span{background:#286F1A;border-color:#286F1A}
 .dica-arrastar{font-size:11.5px;color:var(--texto-fraco)}
 @media (hover:none){.dica-arrastar{display:none}}
 
@@ -382,7 +385,7 @@ legend{font-size:12px;font-weight:700;color:var(--cinza);text-transform:uppercas
 .req-marca{width:20px;height:20px;border-radius:50%;border:2px solid #d5d9db;
   display:grid;place-items:center;font-size:12px;font-weight:700;color:#fff;margin-top:1px;
   flex:none;line-height:1}
-.req-marca.ok{background:var(--verde);border-color:var(--verde)}
+.req-marca.ok{background:var(--verde-esc);border-color:var(--verde-esc)}
 .req-marca.warn{border-color:var(--amarelo);background:#fdf3e3}
 .req-marca.neutro{background:#c9ced1;border-color:#c9ced1}
 .req-marca.off{background:transparent}
