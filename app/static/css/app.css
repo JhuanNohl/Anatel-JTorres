@@ -1,21 +1,45 @@
 /* Sistema de Certificacao ANATEL - ZKTeco Brasil
-   Paleta: #7AC143 primario | #474B4F secundario | #649E37 realce | #555555 texto */
+   Paleta: #43B02A primario | #181B1E lateral | #348F22 realce | #262B30 texto */
 
 :root{
-  --verde:#7AC143;
-  --verde-esc:#649E37;
-  --cinza:#474B4F;
-  --texto:#555555;
-  --texto-fraco:#8b9094;
-  --borda:#e2e6e8;
-  --fundo:#f5f7f8;
-  --branco:#ffffff;
-  --amarelo:#E8A33D;
-  --vermelho:#D0554B;
-  --azul:#4A8FB5;
+  /* ZKTeco */
+  --verde:#43B02A;
+  --verde-esc:#348F22;
+  --verde-suave:#EEF8EB;
+
+  /* Estrutura */
+  --preto:#121416;
+  --sidebar:#181B1E;
+  --fundo:#F5F7F8;
+  --branco:#FFFFFF;
+
+  /* Texto */
+  --texto:#262B30;
+  --texto-fraco:#737A82;
+  --texto-suave:#949BA2;
+
+  /* Interface */
+  --borda:#E2E6E9;
+  --borda-suave:#EEF0F2;
+
+  /* Estados */
+  --amarelo:#D99A16;
+  --vermelho:#D64545;
+  --azul:#3D7EA6;
+
+  /* Geometria */
   --raio:8px;
-  --sombra:0 1px 2px rgba(71,75,79,.08), 0 2px 8px rgba(71,75,79,.06);
+  --raio-grande:10px;
   --lateral:236px;
+
+  --sombra:
+    0 1px 2px rgba(0,0,0,.04),
+    0 3px 8px rgba(0,0,0,.04);
+
+  /* Alias temporario: --cinza foi substituido nesta consolidacao, mas ainda
+     e referenciado por regras que serao migradas nas proximas fases
+     (sidebar, tipografia, botoes...). Remover quando a ultima sumir. */
+  --cinza:var(--preto);
 }
 
 *{box-sizing:border-box}
