@@ -84,6 +84,21 @@ code{background:#eef1f2;padding:1px 5px;border-radius:4px;font-size:12.5px;color
   display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:10}
 .topo form{flex:1;max-width:480px;display:flex;gap:6px}
 .topo .contexto{margin-left:auto;font-size:12px;color:var(--texto-fraco);text-align:right}
+
+/* ------------------------------------------------------- busca com dropdown */
+.busca-caixa{position:relative;flex:1;min-width:0}
+.busca-sugestoes{position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:30;
+  background:var(--branco);border:1px solid var(--borda);border-radius:var(--raio);
+  box-shadow:0 10px 30px rgba(15,20,24,.14);max-height:340px;overflow-y:auto;padding:4px}
+.busca-item{display:flex;align-items:baseline;gap:8px;width:100%;padding:8px 10px;
+  border:none;background:none;border-radius:6px;cursor:pointer;text-align:left;
+  font-family:inherit;font-size:13px;color:var(--texto)}
+.busca-item:hover,.busca-item.marcado{background:var(--verde-suave)}
+.busca-item-tipo{flex:none;font-size:10.5px;font-weight:600;text-transform:uppercase;
+  letter-spacing:.5px;color:var(--verde-esc);min-width:64px}
+.busca-item-titulo{font-weight:600;color:var(--cinza)}
+.busca-item-sub{margin-left:auto;flex:none;font-size:12px;color:var(--texto-fraco);
+  max-width:40%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .interno{padding:22px 26px}
 
 /* ---------------------------------------------------------------- cartoes */

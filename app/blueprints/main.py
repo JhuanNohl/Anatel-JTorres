@@ -1,7 +1,7 @@
 """Painel, busca global e configuracoes (empresa e signatarios)."""
 from datetime import date, timedelta
 
-from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
+from flask import Blueprint, abort, flash, jsonify, redirect, render_template, request, url_for
 from sqlalchemy import or_
 
 from ..extensions import db
@@ -96,6 +96,56 @@ def busca():
                                    .order_by(Documento.criado_em.desc()).limit(50).all())
     total = sum(len(v) for v in resultado.values())
     return render_template("busca.html", termo=termo, resultados=resultado, total=total)
+
+
+@bp.route("/busca/sugestoes")
+def busca_sugestoes():
+    """Resultados curtos para o dropdown da busca — a pagina cheia continua em /busca."""
+    termo = (request.args.get("q") or "").strip()
+    sugestoes = []
+    if len(termo) >= 2:
+        like = f"%{termo}%"
+        for p in (Processo.query.join(Produto)
+                  .filter(or_(Processo.numero.ilike(like),
+                              Produto.modelo.ilike(like),
+                              Produto.nome_comercial.ilike(like),
+                              Processo.numero_homologacao.ilike(like),
+                              Processo.certificado_numero.ilike(like),
+                              Processo.referencia_ocd.ilike(like)))
+                  .order_by(Processo.numero.desc()).limit(4)):
+            sugestoes.append(dict(tipo="Processo", titulo=p.numero, subtitulo=p.produto.modelo,
+                                  url=url_for("processos.detalhe", pid=p.id)))
+        for h in (Homologacao.query.outerjoin(HomologacaoModelo)
+                  .filter(or_(Homologacao.numero.ilike(like),
+                              Homologacao.certificado.ilike(like),
+                              Homologacao.tipo.ilike(like),
+                              Homologacao.aplicacoes.ilike(like),
+                              HomologacaoModelo.modelo.ilike(like)))
+                  .distinct().limit(4)):
+            sugestoes.append(dict(tipo="Homologação", titulo=h.numero, subtitulo=h.lista_modelos,
+                                  url=url_for("homologacoes.detalhe", hid=h.id)))
+        for pr in (Produto.query
+                   .filter(or_(Produto.modelo.ilike(like),
+                               Produto.nome_comercial.ilike(like),
+                               Produto.tipo_equipamento.ilike(like),
+                               Produto.familia.ilike(like)))
+                   .order_by(Produto.modelo).limit(4)):
+            sugestoes.append(dict(tipo="Produto", titulo=pr.modelo,
+                                  subtitulo=pr.nome_comercial or pr.tipo_equipamento or "",
+                                  url=url_for("produtos.detalhe", pid=pr.id)))
+        for d in (Documento.query
+                  .filter(or_(Documento.titulo.ilike(like), Documento.corpo.ilike(like)))
+                  .order_by(Documento.criado_em.desc()).limit(4)):
+            sugestoes.append(dict(tipo="Documento", titulo=d.titulo, subtitulo=d.processo.numero,
+                                  url=url_for("documentos.ver", did=d.id)))
+        for a in (Anexo.query
+                  .filter(or_(Anexo.titulo.ilike(like), Anexo.nome_original.ilike(like),
+                              Anexo.numero_documento.ilike(like), Anexo.categoria.ilike(like)))
+                  .order_by(Anexo.criado_em.desc()).limit(4)):
+            sugestoes.append(dict(tipo="Anexo", titulo=a.titulo or a.nome_original,
+                                  subtitulo=a.categoria,
+                                  url=url_for("anexos.lista", pid=a.processo_id)))
+    return jsonify(sugestoes[:8])
 
 
 # ------------------------------------------------------------------ empresa

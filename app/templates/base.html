@@ -71,9 +71,13 @@
 
 <main class="conteudo">
   <div class="topo nao-imprimir">
-    <form action="{{ url_for('main.busca') }}" method="get" role="search">
-      <input type="search" name="q" placeholder="Buscar modelo, processo, homologação, anexo…"
-             value="{{ request.args.get('q','') }}">
+    <form action="{{ url_for('main.busca') }}" method="get" role="search"
+          data-busca-sugestoes="{{ url_for('main.busca_sugestoes') }}">
+      <div class="busca-caixa">
+        <input type="search" name="q" placeholder="Buscar modelo, processo, homologação, anexo…"
+               value="{{ request.args.get('q','') }}" autocomplete="off">
+        <div class="busca-sugestoes" hidden></div>
+      </div>
       <button class="btn" type="submit">Buscar</button>
     </form>
     <div class="contexto">
@@ -101,6 +105,7 @@
   </div>
 </main>
 
+<script src="{{ url_for('static', filename='js/busca.js') }}"></script>
 {% block scripts %}{% endblock %}
 </body>
 </html>
