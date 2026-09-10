@@ -16,7 +16,7 @@
       <label>Buscar</label>
       <input type="search" name="q" value="{{ q }}" placeholder="Digite parte do nome…">
     </div>
-    <button class="btn btn-escuro">Filtrar</button>
+    <button class="btn">Filtrar</button>
     {% if q %}<a class="btn" href="{{ url_for('cadastros.lista', slug=slug) }}">Limpar</a>{% endif %}
   </form>
 

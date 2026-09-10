@@ -131,7 +131,7 @@
         {% endfor %}
       </select>
     </div>
-    <button class="btn btn-escuro">Filtrar</button>
+    <button class="btn">Filtrar</button>
     {% if q or natureza or situacao %}
     <a class="btn" href="{{ url_for('produtos.lista') }}">Limpar</a>{% endif %}
   </form>
@@ -197,7 +197,7 @@
                   <label class="pequeno negrito">Não vamos renovar. Por quê?</label>
                   <textarea name="motivo" rows="2" required
                             placeholder="Ex.: inviável comercialmente — produto saiu de linha."></textarea>
-                  <button class="btn btn-mini btn-escuro mt8" style="width:100%">
+                  <button class="btn btn-mini mt8" style="width:100%">
                     Registrar “não renovar”</button>
                   <span class="dica">O motivo fica visível aqui na lista.</span>
                 </form>

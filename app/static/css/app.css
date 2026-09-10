@@ -178,12 +178,14 @@ code{background:#eef1f2;padding:1px 5px;border-radius:4px;font-size:12.5px;color
   background:var(--branco);color:var(--cinza);padding:7px 13px;border-radius:6px;
   font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;line-height:1.3}
 .btn:hover{background:#f7f9f9;text-decoration:none;border-color:#cdd3d6}
+.btn:active{background:#eef0f1;border-color:#c3c9cc}
+.btn:focus-visible{outline:3px solid rgba(67,176,42,.20);outline-offset:2px}
 .btn-primario{background:var(--verde);border-color:var(--verde);color:#fff}
 .btn-primario:hover{background:var(--verde-esc);border-color:var(--verde-esc);color:#fff}
-.btn-escuro{background:var(--cinza);border-color:var(--cinza);color:#fff}
-.btn-escuro:hover{background:#3b3f42;color:#fff}
+.btn-primario:active{background:#2c7a1c;border-color:#2c7a1c;color:#fff}
 .btn-perigo{color:var(--vermelho);border-color:#f0d2ce}
 .btn-perigo:hover{background:#fdf1f0}
+.btn-perigo:active{background:#fbe1de}
 .btn-mini{padding:4px 9px;font-size:12px}
 .btn svg{width:14px;height:14px;flex:none}
 .btn-mini svg{width:13px;height:13px}
@@ -226,7 +228,7 @@ input[type=file],select,textarea{
   width:100%;padding:8px 10px;border:1px solid var(--borda);border-radius:6px;font-size:13.5px;
   font-family:inherit;color:var(--texto);background:var(--branco)}
 input:focus,select:focus,textarea:focus{outline:none;border-color:var(--verde);
-  box-shadow:0 0 0 3px rgba(122,193,67,.15)}
+  box-shadow:0 0 0 3px rgba(67,176,42,.15)}
 textarea{min-height:90px;resize:vertical}
 textarea.codigo{font-family:Consolas,"Courier New",monospace;font-size:12.5px;min-height:340px;
   line-height:1.6}
