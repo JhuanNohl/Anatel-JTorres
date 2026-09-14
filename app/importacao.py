@@ -257,7 +257,15 @@ def importar(pasta_antiga):
             a.produto = produtos.get(sem_acento(a.modelo))
             if a.produto is None:
                 fora_do_catalogo += 1
-    db.session.flush()
+
+    # Fecha a curadoria/vinculos aqui - o que falta e so copiar fotos, arquivo
+    # por arquivo, o que pode demorar (sao muitos arquivos, e a pasta de
+    # destino pode estar numa unidade de rede). Nao vale segurar a transacao
+    # do banco (e a trava de escrita do SQLite) por todo esse tempo: quem
+    # estiver usando o sistema ao mesmo tempo - adicionando ou excluindo uma
+    # foto de processo, salvando a rastreabilidade - cairia em "database is
+    # locked" ate a importacao terminar.
+    db.session.commit()
 
     # ---------------------------------------------------------------- fotos
     # As fotos sao procuradas POR NOME em qualquer lugar abaixo da pasta
@@ -292,8 +300,10 @@ def importar(pasta_antiga):
                                            nome_original=nome, ordem=ordem))
             existentes.add(nome)
             copiadas += 1
-
-    db.session.commit()
+        # grava as fotos desta homologacao e libera a trava antes de copiar a
+        # proxima - cada homologacao vira uma transacao curta, nao uma so
+        # transacao gigante do inicio ao fim da importacao.
+        db.session.commit()
 
     return dict(pasta=str(cache), modelos_lidos=len(curadoria),
                 homologacoes_com_foto=len(registros_fotos), curadoria_aplicada=tocadas,

@@ -64,7 +64,11 @@ def remover_arquivo(relativo):
         if alvo.is_file():
             alvo.unlink()
     except OSError:
-        pass
+        # Nao interrompe a exclusao do registro - mas fica no log, para nao
+        # mascarar problema de permissao/rede na pasta de armazenamento.
+        current_app.logger.warning(
+            "não consegui apagar o arquivo %r da pasta de armazenamento", relativo,
+            exc_info=True)
 
 
 def dimensoes_imagem(relativo):

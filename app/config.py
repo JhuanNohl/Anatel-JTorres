@@ -15,6 +15,11 @@ class Config:
     SECRET_KEY = os.environ.get("ANATEL_SECRET_KEY", "zkteco-anatel-dev-key")
     SQLALCHEMY_DATABASE_URI = f"sqlite:///{BANCO.as_posix()}"
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    # SQLite bloqueia o banco inteiro durante uma escrita; sem isto, uma segunda
+    # requisicao que tambem escreve (outra foto, outro celular, o agendador da
+    # ANATEL) apanha "database is locked" quase na hora. 30s da folga para a
+    # escrita em andamento terminar antes de desistir.
+    SQLALCHEMY_ENGINE_OPTIONS = {"connect_args": {"timeout": 30}}
     # 128 MB por requisicao (fotos em alta resolucao + PDFs de manual)
     MAX_CONTENT_LENGTH = 128 * 1024 * 1024
     BANCO = BANCO

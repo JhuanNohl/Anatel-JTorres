@@ -1,5 +1,6 @@
 """Fotos do produto organizadas pelas vistas exigidas pela OCD."""
-from flask import Blueprint, flash, jsonify, redirect, render_template, request, url_for
+from flask import (Blueprint, current_app, flash, jsonify, redirect, render_template,
+                   request, url_for)
 
 from ..extensions import db
 from ..models import Foto, Processo, Vista, VistaProcesso
@@ -98,7 +99,17 @@ def enviar(pid):
                          "Use a aba Anexos para PDFs e documentos.")
             continue
         prefixo = slugify(vista.codigo) if vista else "extra"
-        caminho, tamanho = salvar_arquivo(arquivo, pasta_processo(processo, "fotos"), prefixo)
+        try:
+            caminho, tamanho = salvar_arquivo(
+                arquivo, pasta_processo(processo, "fotos"), prefixo)
+        except OSError:
+            current_app.logger.exception(
+                "falha ao gravar foto do processo %s na pasta de armazenamento",
+                processo.numero)
+            erros.append(
+                f"Não foi possível salvar “{arquivo.filename}”: falha ao gravar na pasta "
+                "de armazenamento (verifique espaço em disco/permissão).")
+            continue
         largura, altura = dimensoes_imagem(caminho)
         foto = Foto(processo=processo, vista=vista, arquivo=caminho,
                     nome_original=arquivo.filename,

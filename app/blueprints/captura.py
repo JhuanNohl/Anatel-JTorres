@@ -77,7 +77,19 @@ LOCAIS = ("localhost", "127.0.0.1", "::1", "0.0.0.0")
 
 
 def ip_da_maquina():
-    """O IP que os outros aparelhos usam para chegar neste servidor."""
+    """O IP que os outros aparelhos usam para chegar neste servidor.
+
+    O truque so funciona quando o processo enxerga a interface de rede real da
+    fabrica. Dentro de um container Docker SEM "network_mode: host" isto
+    devolve o IP interno do Docker (ex.: 172.17.0.2) - ninguem no celular
+    chega la. Por isso ANATEL_IP_LAN, abaixo, tem prioridade: e a saida para
+    quando o deploy nao aplicou o host networking (ex.: build/run manual, sem
+    docker compose).
+    """
+    import os
+    fixo = (os.environ.get("ANATEL_IP_LAN") or "").strip()
+    if fixo:
+        return fixo
     import socket
     try:
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
@@ -93,7 +105,8 @@ def endereco_da_sessao(sessao):
     Normalmente basta o endereco que o navegador ja esta usando. Mas se alguem
     abrir o sistema NO PROPRIO servidor (localhost), o QR sairia com "localhost"
     dentro - e o celular nunca chegaria la. Nesse caso trocamos pelo IP da
-    maquina na rede.
+    maquina na rede (ip_da_maquina, que respeita ANATEL_IP_LAN se estiver
+    definido - ver comentario acima).
     """
     endereco = url_for("captura.entrar", token=sessao.token, _external=True)
     servidor = (request.host or "").split(":")[0]
@@ -195,8 +208,16 @@ def enviar(token, vid):
         flash("Não recebi nenhuma imagem. Tente novamente.", "erro")
         return redirect(url_for("captura.vista", token=token, vid=vid))
 
-    caminho, tamanho = salvar_arquivo(arquivo, pasta_processo(processo, "fotos"),
-                                      slugify(alvo.codigo))
+    try:
+        caminho, tamanho = salvar_arquivo(arquivo, pasta_processo(processo, "fotos"),
+                                          slugify(alvo.codigo))
+    except OSError:
+        current_app.logger.exception(
+            "falha ao gravar foto (celular) do processo %s na pasta de armazenamento",
+            processo.numero)
+        flash("Não foi possível salvar a foto: falha ao gravar na pasta de armazenamento. "
+              "Tente novamente ou avise o suporte.", "erro")
+        return redirect(url_for("captura.vista", token=token, vid=vid))
     absoluto = caminho_absoluto(caminho)
     largura, altura = dimensoes_imagem(caminho)
     # confere ANTES de pendurar a foto no processo: a conferencia percorre as
@@ -289,8 +310,16 @@ def extra(token):
     if request.method == "POST":
         arquivo = request.files.get("foto")
         if arquivo and arquivo.filename and is_imagem(arquivo.filename):
-            caminho, tamanho = salvar_arquivo(
-                arquivo, pasta_processo(sessao.processo, "fotos"), "extra")
+            try:
+                caminho, tamanho = salvar_arquivo(
+                    arquivo, pasta_processo(sessao.processo, "fotos"), "extra")
+            except OSError:
+                current_app.logger.exception(
+                    "falha ao gravar foto extra (celular) do processo %s na pasta de "
+                    "armazenamento", sessao.processo.numero)
+                flash("Não foi possível salvar a foto: falha ao gravar na pasta de "
+                      "armazenamento. Tente novamente ou avise o suporte.", "erro")
+                return redirect(url_for("captura.extra", token=token))
             largura, altura = dimensoes_imagem(caminho)
             analise = conferir_foto(sessao.processo, None, caminho_absoluto(caminho))
             foto = Foto(processo=sessao.processo, arquivo=caminho,

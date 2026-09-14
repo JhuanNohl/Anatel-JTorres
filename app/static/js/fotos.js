@@ -113,12 +113,21 @@
   function excluirFoto(form) {
     var cartao = form.closest("[data-vista-cartao]");
     return fetch(form.action, { method: "POST", headers: { "X-Requested-With": "fetch" } })
-      .then(function (r) { return r.json(); })
+      .then(function (r) {
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        return r.json();
+      })
       .then(function (dados) {
         var mini = form.closest(".mini");
         if (mini) mini.remove();
         if (cartao) atualizarContagem(cartao);
         atualizarResumo(dados.resumo);
+      })
+      .catch(function (erro) {
+        // sem isto, um erro do servidor (ex.: banco sem permissao de escrita)
+        // falhava em silencio - a foto ficava, sem nenhum aviso na tela
+        if (cartao) estado(cartao, "Não foi possível remover a foto. Tente de novo.", "erro");
+        throw erro;
       });
   }
 
